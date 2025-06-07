@@ -9,7 +9,6 @@ class StrEnum(str, Enum):
 
 
 class UserType(StrEnum):
-    member = "Member"
     coop_admin = "Cooperative Admin"
     coop_member = "Cooperative Member"
     admin = "Admin"

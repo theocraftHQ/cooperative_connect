@@ -1,25 +1,15 @@
-import json
 import logging
-from typing import Optional
-from uuid import UUID, uuid4
+from uuid import UUID
 
 from fastapi import HTTPException
 
-import cooperative_connect.database.db_handlers.user_db_handler as admin_user_db_handler
+import cooperative_connect.database.db_handlers.user_db_handler as user_db_handler
+import cooperative_connect.root.dependencies as dep
+import cooperative_connect.schemas.user_schemas as schemas
 import cooperative_connect.services.service_utils.auth_utils as auth_utils
 import cooperative_connect.services.service_utils.gr_redis_utils as redis_utils
-import cooperative_connect.services.service_utils.token_utils as gr_toks_utils
-from cooperative_connect.root.utils.mailer import send_mail
-from cooperative_connect.schemas.auth_schemas import (
-    AdminUser,
-    AdminUserExtended,
-    AdminUserUpdate,
-    NewAgentProfile,
-    UserAccessToken,
-)
+import cooperative_connect.services.service_utils.token_utils as toks_utils
 from cooperative_connect.services.service_utils.exception_collection import (
-    CreateError,
-    DuplicateError,
     NotFound,
     UpdateError,
 )
@@ -27,130 +17,109 @@ from cooperative_connect.services.service_utils.exception_collection import (
 LOGGER = logging.getLogger(__name__)
 
 
-async def get_admin_user_by_mail(email: str):
+async def get_user_via_unique(email: str = None, phone_number: str = None):
     try:
-        return await admin_user_db_handler.get_admin(email=email)
+        return await user_db_handler.get_user(email=email, phone_number=phone_number)
     except NotFound as e:
         LOGGER.exception(e)
-        LOGGER.error("Admin not found")
-        raise HTTPException(**service_errors.ErrorEnum.agent_not_found())
+        LOGGER.error("account not found")
+        raise HTTPException()
 
 
-async def get_admin_user(agent_uid: UUID):
+async def get_user(id: UUID):
     try:
-        return await admin_user_db_handler.get_admin_profile(agent_uid=agent_uid)
+        return await user_db_handler.get_user(id=id)
     except NotFound as e:
         LOGGER.exception(e)
         LOGGER.error("Agent not found")
 
-        raise HTTPException(**service_errors.ErrorEnum.agent_not_found())
+        raise HTTPException()
 
 
 # create record
-async def admin_sign_up(admin_user: AdminUser):
-    """Create Admin Token
+async def sign_up(user_in: schemas.User):
 
-    Args:
-        invite_token (AgentInviteToken): _description_
+    user_in.password = auth_utils.hash_password(plain_password=user_in.password)
 
-    Raises:
-        HTTPException: invalid_token
+    user_profile = await user_db_handler.create_user(user=user_in)
+    user_profile_dict = {"id": str(user_profile.id)}
+    access_token, refresh_token = (
+        dep.create_access_token(data=user_profile_dict),
+        dep.create_refresh_token(data=user_profile_dict),
+    )
 
-    Returns:
-        _type_: _description_
-    """
-    try:
-        admin_profile = await get_admin_user_by_mail(email=admin_user.email)
-
-        if admin_profile:
-            LOGGER.error("Admin Account: exists")
-
-            raise HTTPException(**service_errors.ErrorEnum.email_exists())
-    # else create record
-    except HTTPException:
-        admin_user.password = auth_utils.hash_password(
-            plain_password=admin_user.password
-        )
-
-        admin_profile = await admin_user_db_handler.create_admin(
-            admin_user=AdminUserExtended(**admin_user.model_dump())
-        )
-        admin_profile_dict = {"admin_uid": str(admin_profile.admin_uid)}
-        access_token, refresh_token = (
-            auth_utils.create_access_token(data=admin_profile_dict),
-            auth_utils.create_refresh_token(data=admin_profile_dict),
-        )
-
-        return UserAccessToken(access_token=access_token, refresh_token=refresh_token)
+    return schemas.UserAccessToken(
+        access_token=access_token, refresh_token=refresh_token
+    )
 
 
 # login
-async def admin_login(email: str, password: str):
-    admin_profile = await get_admin_user_by_mail(email=email)
+async def login(email: str, password: str):
+    user_profile = await get_user_via_unique(email=email)
     if not auth_utils.verify_password(
-        hashed_password=admin_profile.password, plain_password=password
+        hashed_password=user_profile.password, plain_password=password
     ):
-        raise HTTPException(**service_errors.ErrorEnum.incorrect_credential())
+        raise HTTPException()
 
-    payload = NewAgentProfile(agent_uid=admin_profile.admin_uid, email=email)
-
-    payload_dict = {"admin_uid": str(payload.agent_uid), "email": payload.email}
-    access_token, refresh_token = auth_utils.create_access_token(
+    payload_dict = {"id": str(user_profile.id)}
+    access_token, refresh_token = dep.create_access_token(
         data=payload_dict
-    ), auth_utils.create_refresh_token(data=payload_dict)
+    ), dep.create_refresh_token(data=payload_dict)
 
-    return UserAccessToken(access_token=access_token, refresh_token=refresh_token)
+    return schemas.UserAccessToken(
+        access_token=access_token, refresh_token=refresh_token
+    )
 
 
 # forget password
 async def forgot_password(email: str):
-    await get_admin_user_by_mail(email=email)
+    await get_user_via_unique(email=email)
 
     # Create a Token 4 OTP
-    token = gr_toks_utils.gr_token_gen()
+    token = toks_utils.gr_token_gen()
 
-    redis_utils.add_forget_admin_token(token=token, email=email)
+    redis_utils.add_forget_token(token=token, email=email)
     # send mail
 
-    await send_mail(
-        subject="Forgot Password",
-        reciepients=[email],
-        payload={"token": token},
-        template="user_auth/token_email_template.html",
-    )
+    # await send_mail(
+    #     subject="Forgot Password",
+    #     reciepients=[email],
+    #     payload={"token": token},
+    #     template="user_auth/token_email_template.html",
+    # )
     return {"messge": "mail sent"}
 
     ...
 
 
-async def admin_update(admin_update: AdminUserUpdate, admin_user_uid: UUID):
+async def user_update(user_update: schemas.UserUpdate, user_id: UUID):
     try:
-        return await admin_user_db_handler.update_agent(
-            admin_user_update=admin_update, admin_user_uid=admin_user_uid
+        return await user_db_handler.update_user(
+            user_update=user_update, user_id=user_id
         )
     except UpdateError as e:
         LOGGER.exception(e)
         LOGGER.error("unexplainable update error")
-        raise HTTPException(**service_errors.ErrorEnum.agent_not_found())
+        raise HTTPException()
 
 
 async def reset_password(token: int, new_password: str):
-    email = redis_utils.get_forget_admin_token(token=token)
+    email = redis_utils.get_forget_token(token=token)
     if not email:
         LOGGER.error(f"forgot password token: {token} not valid")
-        raise HTTPException(**service_errors.ErrorEnum.redis_not_found())
+        raise HTTPException()
 
-    admin_profile = await get_admin_user_by_mail(email=email)
+    user_profile = await get_user_via_unique(email=email)
 
     new_password = auth_utils.hash_password(plain_password=new_password)
-    updated_admin_profile = await admin_update(
-        admin_update=AdminUserUpdate(password=new_password),
-        admin_user_uid=admin_profile.admin_uid,
+    updated_user_profile = await user_update(
+        admin_update=schemas.UserUpdate(password=new_password),
+        admin_user_uid=user_profile.id,
     )
-    return updated_admin_profile
+    return updated_user_profile
 
 
-async def admin_logout(access_token: str, refresh_token: str):
+async def logout(access_token: str, refresh_token: str):
     redis_utils.add_token_blacklist(
         access_token=access_token, refresh_token=refresh_token
     )

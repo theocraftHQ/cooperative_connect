@@ -1,17 +1,11 @@
-from uuid import UUID
-
-from fastapi import APIRouter, Body, Depends, Header, UploadFile, status
+from fastapi import APIRouter, Body, Header, status
 from pydantic import constr
 
-import cooperative_connect.schemas.auth_schemas as schemas
-import cooperative_connect.services.auth_service as admin_auth_service
-from cooperative_connect.services.service_utils.auth_utils import (
-    AdminUserProfile,
-    get_current_user,
-    get_new_access_token,
-)
+import cooperative_connect.schemas.user_schemas as schemas
+import cooperative_connect.services.user_service as user_service
+from cooperative_connect.root.dependencies import Current_User, get_new_access_token
 
-api_router = APIRouter(prefix="/v1/auth", tags=["Admin Authentication"])
+api_router = APIRouter(prefix="/auth", tags=["User"])
 
 
 @api_router.post(
@@ -19,26 +13,24 @@ api_router = APIRouter(prefix="/v1/auth", tags=["Admin Authentication"])
     response_model=schemas.UserAccessToken,
     status_code=status.HTTP_201_CREATED,
 )
-async def admin_sign_up(admin_user: schemas.AdminUser):
-    return await admin_auth_service.admin_sign_up(admin_user=admin_user)
+async def sign_up(admin_user: schemas.User):
+    return await user_service.sign_up(admin_user=admin_user)
 
 
 @api_router.post(
     "/login", response_model=schemas.UserAccessToken, status_code=status.HTTP_200_OK
 )
-async def admin_login(login_cred: schemas.Login):
-    return await admin_auth_service.admin_login(
+async def login(login_cred: schemas.Login):
+    return await user_service.login(
         email=login_cred.email, password=login_cred.password
     )
 
 
 @api_router.post(
-    "/me", response_model=schemas.AdminUserProfile, status_code=status.HTTP_200_OK
+    "/me", response_model=schemas.UserProfile, status_code=status.HTTP_200_OK
 )
-async def admin_me(
-    current_admin_profile: schemas.AdminUserProfile = Depends(get_current_user),
-):
-    return current_admin_profile
+async def me(current_user_profile: Current_User):
+    return schemas.UserProfile(**current_user_profile.as_dict())
 
 
 @api_router.get(
@@ -56,18 +48,19 @@ async def new_access_token(refresh_token: str = Header(convert_underscores=False
 @api_router.post("/logout", status_code=status.HTTP_200_OK)
 async def admin_logout(
     token_cred: schemas.UserAccessToken,
-    current_admin_user: schemas.AdminUserProfile = Depends(get_current_user),
+    user: Current_User,
 ):
-    return await admin_auth_service.admin_logout(
+    return await user_service.logout(
         access_token=token_cred.access_token, refresh_token=token_cred.refresh_token
     )
 
 
 @api_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 async def forgot_password(
-    email: schemas.EmailStr = Body(embed=True, example="agent@gr.com")
+    email: schemas.EmailStr = Body(embed=True, default=None, example="agent@gr.com"),
+    phone_number: schemas.PhoneNumber = Body(embed=True),
 ):
-    return await admin_auth_service.forgot_password(email=email)
+    return await user_service.forgot_password(email=email)
 
 
 @api_router.post(
@@ -79,6 +72,4 @@ async def reset_password(
     token: constr(max_length=4, min_length=4) = Body(embed=True, example=1345),
     new_password: str = Body(embed=True),
 ):
-    return await admin_auth_service.reset_password(
-        token=token, new_password=new_password
-    )
+    return await user_service.reset_password(token=token, new_password=new_password)
