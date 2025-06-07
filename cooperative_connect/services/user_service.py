@@ -103,7 +103,7 @@ async def user_update(user_update: schemas.UserUpdate, user_id: UUID):
         raise HTTPException()
 
 
-async def reset_password(token: int, new_password: str):
+async def reset_password(token: int, new_password: str) -> user_db_handler.User_DB:
     email = redis_utils.get_forget_token(token=token)
     if not email:
         LOGGER.error(f"forgot password token: {token} not valid")

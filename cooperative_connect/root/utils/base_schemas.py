@@ -22,6 +22,7 @@ PhoneNumber = Annotated(
     constr(min_length=11, max_length=11),
 )
 
+
 CoopInt = Annotated(int, conint(ge=0))
 
 

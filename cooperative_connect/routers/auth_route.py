@@ -66,10 +66,11 @@ async def forgot_password(
 @api_router.post(
     "/password-reset",
     status_code=status.HTTP_200_OK,
-    response_model=schemas.AdminUserProfile,
+    response_model=schemas.UserProfile,
 )
 async def reset_password(
     token: constr(max_length=4, min_length=4) = Body(embed=True, example=1345),
     new_password: str = Body(embed=True),
 ):
-    return await user_service.reset_password(token=token, new_password=new_password)
+    user = await user_service.reset_password(token=token, new_password=new_password)
+    return schemas.UserProfile(**user.as_dict())
