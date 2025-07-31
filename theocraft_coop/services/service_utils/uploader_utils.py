@@ -1,4 +1,4 @@
-from project_name.root.settings import Settings
+from theocraft_coop.root.settings import Settings
 from aiobotocore.session import get_session
 from aiobotocore.config import AioConfig
 

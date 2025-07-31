@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from cooperative_connect.routers.auth_route import api_router as auth_router
+from theocraft_coop.routers.auth_route import api_router as auth_router
 
 router = APIRouter()
 

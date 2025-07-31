@@ -4,8 +4,8 @@ from uuid import UUID
 
 from pydantic import EmailStr, Field
 
-from cooperative_connect.root.connect_enums import UserType
-from cooperative_connect.root.utils.base_schemas import (
+from theocraft_coop.root.connect_enums import UserType
+from theocraft_coop.root.utils.base_schemas import (
     AbstractModel,
     CoopInt,
     Password,
@@ -30,11 +30,24 @@ class Login(Password):
 class User(Login):
     first_name: str
     last_name: str
-    user_type: UserType
+    user_type: UserType = UserType.coop_member
+
+
+class UserBio(AbstractModel):
+    bvn: Optional[str] = None
+    identification: Optional[str] = None
+    address: Optional[dict] = None
+    passport: Optional[str] = None
+    signature: Optional[str] = None
+
+
+class UserOnboard(User):
+    user_bio: Optional[UserBio] = None
 
 
 class UserProfile(User):
     id: UUID
+    bio: Optional[UserBio] = None
     date_created_utc: datetime
     date_updated_utc: Optional[datetime] = None
     # excluding password

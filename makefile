@@ -17,12 +17,14 @@ activate :
 install :
 	pip install -r requirements.txt 
 
+local_migrate_init :
+	alembic -c local_dev_alembic.ini init .local_migrations
 
-local-migration:
-	alembic -c local_dev_alembic.ini revision -m "$(MESSAGE)" --autogenerate
+local_migrate :
+	alembic -c local_dev_alembic.ini revision -m $(MESSAGE) --autogenerate
 
 
-local-migrate:
+local-migrate_up:
 	alembic -c local_dev_alembic.ini upgrade heads
 
 
@@ -36,14 +38,12 @@ local-head:
 
 
 
-agent_server:
-	uvicorn project_name.root.app:app --reload --port=8000
-
+member_server:
+	uvicorn theocraft_coop.root.app:app --reload --port=8000
 admin_server:
-	uvicorn project_name.root.app:app --reload --port=8001
+	uvicorn theocraft_coop.root.app:app --reload --port=8001
 
 
-	rq worker --with-scheduler
 
 
 format : 

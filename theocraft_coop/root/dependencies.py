@@ -8,11 +8,11 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 from jose import ExpiredSignatureError, JWTError, jwt
 
-import cooperative_connect.services.service_utils.gr_redis_utils as redis_utils
-import cooperative_connect.services.user_service as admin_service
-from cooperative_connect.database.orms.user_orm import User
-from cooperative_connect.root.settings import Settings
-from cooperative_connect.schemas.user_schemas import TokenData
+import theocraft_coop.services.service_utils.gr_redis_utils as redis_utils
+import theocraft_coop.services.user_service as admin_service
+from theocraft_coop.database.orms.user_orm import User
+from theocraft_coop.root.settings import Settings
+from theocraft_coop.schemas.user_schemas import TokenData
 
 LOGGER = logging.getLogger(__name__)
 

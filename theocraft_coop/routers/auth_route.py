@@ -1,11 +1,21 @@
 from fastapi import APIRouter, Body, Header, status
-from pydantic import constr
 
-import cooperative_connect.schemas.user_schemas as schemas
-import cooperative_connect.services.user_service as user_service
-from cooperative_connect.root.dependencies import Current_User, get_new_access_token
+import theocraft_coop.schemas.user_schemas as schemas
+import theocraft_coop.services.user_service as user_service
+from theocraft_coop.root.connect_enums import UserType
+from theocraft_coop.root.dependencies import Current_User, get_new_access_token
+from theocraft_coop.root.utils.base_schemas import AbstractResponse
 
 api_router = APIRouter(prefix="/auth", tags=["User"])
+
+
+@api_router.post(
+    "/mfa-sign-up",
+    response_model=AbstractResponse,
+    status_code=status.HTTP_201_CREATED,
+)
+async def user_sign_up(phone_number: schemas.PhoneNumber):
+    return await user_service.user_mfa_sign_up(phone_number=phone_number)
 
 
 @api_router.post(
@@ -13,8 +23,17 @@ api_router = APIRouter(prefix="/auth", tags=["User"])
     response_model=schemas.UserAccessToken,
     status_code=status.HTTP_201_CREATED,
 )
-async def sign_up(admin_user: schemas.User):
-    return await user_service.sign_up(admin_user=admin_user)
+async def sign_up(
+    user_in: schemas.UserOnboard, user_type: UserType = UserType.coop_member
+):
+
+    user_in.user_type = user_type
+    if user_in.user_type == UserType.coop_admin:
+        return await user_service.onboard_user(user_onboard=user_in)
+
+    return await user_service.sign_up(
+        user_in=schemas.User(**user_in.model_dump(exclude="user_bio"))
+    )
 
 
 @api_router.post(
@@ -22,7 +41,9 @@ async def sign_up(admin_user: schemas.User):
 )
 async def login(login_cred: schemas.Login):
     return await user_service.login(
-        email=login_cred.email, password=login_cred.password
+        email=login_cred.email,
+        phone_number=login_cred.phone_number,
+        password=login_cred.password,
     )
 
 
@@ -45,22 +66,12 @@ async def new_access_token(refresh_token: str = Header(convert_underscores=False
     )
 
 
-@api_router.post("/logout", status_code=status.HTTP_200_OK)
-async def admin_logout(
-    token_cred: schemas.UserAccessToken,
-    user: Current_User,
-):
-    return await user_service.logout(
-        access_token=token_cred.access_token, refresh_token=token_cred.refresh_token
-    )
-
-
 @api_router.post("/forgot-password", status_code=status.HTTP_200_OK)
 async def forgot_password(
     email: schemas.EmailStr = Body(embed=True, default=None, example="agent@gr.com"),
     phone_number: schemas.PhoneNumber = Body(embed=True),
 ):
-    return await user_service.forgot_password(email=email)
+    return await user_service.forgot_password(email=email, phone_number=phone_number)
 
 
 @api_router.post(
@@ -69,7 +80,7 @@ async def forgot_password(
     response_model=schemas.UserProfile,
 )
 async def reset_password(
-    token: constr(max_length=4, min_length=4) = Body(embed=True, example=1345),
+    token: str = Body(embed=True, example=1345),
     new_password: str = Body(embed=True),
 ):
     user = await user_service.reset_password(token=token, new_password=new_password)

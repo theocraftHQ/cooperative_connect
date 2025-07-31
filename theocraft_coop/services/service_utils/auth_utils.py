@@ -1,6 +1,6 @@
 from passlib.context import CryptContext
 
-from cooperative_connect.root.settings import Settings
+from theocraft_coop.root.settings import Settings
 
 settings = Settings()
 

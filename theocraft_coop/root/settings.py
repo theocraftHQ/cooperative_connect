@@ -16,3 +16,10 @@ class Settings(AbstractSettings):
     mail_from_name: str
     mail_port: int
     mail_server: str
+    sms_url: str
+    sms_username: str
+    sms_apikey: str
+    app_name: str = "Theocraft Coop"
+
+
+settings = Settings()

@@ -9,21 +9,21 @@ class AbstractSettings(BaseSettings):
         env_file = ".env"
 
 
-Password = Annotated(
+Password = Annotated[
     str,
     constr(
         min_length=6,
         pattern="^[A-Za-z0-9!@#$&*_+%-=]+$",
     ),
-)
+]
 
-PhoneNumber = Annotated(
+PhoneNumber = Annotated[
     str,
     constr(min_length=11, max_length=11),
-)
+]
 
 
-CoopInt = Annotated(int, conint(ge=0))
+CoopInt = Annotated[int, conint(ge=0)]
 
 
 class AbstractModel(BaseModel):
@@ -31,4 +31,4 @@ class AbstractModel(BaseModel):
 
 
 class AbstractResponse(BaseModel):
-    status: int
+    message: str
