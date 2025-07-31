@@ -2,3 +2,4 @@ venv
 __pycache__
 .env
 .local_migrations
+./.local_migrations
