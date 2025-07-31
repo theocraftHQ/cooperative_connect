@@ -20,7 +20,7 @@ class User(AbstractBase):
 
 
 class UserBio(AbstractBase):
-    user_id = Column(UUID, ForeignKey("users.id"), nullable=False)
+    user_id = Column(UUID, ForeignKey("user.id"), nullable=False)
     bvn = Column(String, nullable=True)
     identification = Column(String, nullable=True)
     address = Column(JSONB, default=False)

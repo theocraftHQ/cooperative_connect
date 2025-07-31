@@ -24,7 +24,7 @@ local_migrate :
 	alembic -c local_dev_alembic.ini revision -m $(MESSAGE) --autogenerate
 
 
-local-migrate_up:
+local_migrate_up:
 	alembic -c local_dev_alembic.ini upgrade heads
 
 

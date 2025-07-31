@@ -8,7 +8,6 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 from jose import ExpiredSignatureError, JWTError, jwt
 
-import theocraft_coop.services.service_utils.gr_redis_utils as redis_utils
 import theocraft_coop.services.user_service as admin_service
 from theocraft_coop.database.orms.user_orm import User
 from theocraft_coop.root.settings import Settings
@@ -65,9 +64,6 @@ def create_refresh_token(data: dict):
 
 
 async def verify_access_token(token: str):
-    cache_token = redis_utils.get_token_blacklist(token=token)
-    if cache_token:
-        raise HTTPException(detail="black-listed token", status_code=401)
 
     try:
         jwt_token = resolve_token(
@@ -95,9 +91,7 @@ async def verify_access_token(token: str):
 
 
 async def verify_refresh_token(token: str):
-    cache_token = redis_utils.get_token_blacklist(token=token)
-    if cache_token:
-        raise HTTPException(detail="black-listed token", status_code=401)
+
     try:
         jwt_token = resolve_token(
             signed_token=token, max_age=REFRESH_TOKEN_EXPIRE_MINUTES
@@ -113,13 +107,11 @@ async def verify_refresh_token(token: str):
         )
         id: str = payload.get("admin_uid")
         if id is None:
-            await redis_utils.delete_refresh_token(refresh_token=token)
             raise credentials_exception()
 
         token_data = TokenData(id=id)
     except (JWTError, ExpiredSignatureError) as e:
         LOGGER.exception(e)
-        redis_utils.delete_refresh_token(refresh_token=token)
         raise credentials_exception()
 
     return token_data

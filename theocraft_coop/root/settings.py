@@ -1,12 +1,11 @@
 from pydantic import EmailStr
-from pydantic.networks import PostgresDsn, RedisDsn
+from pydantic.networks import PostgresDsn
 
 from .utils.base_schemas import AbstractSettings
 
 
 class Settings(AbstractSettings):
     postgres_url: PostgresDsn
-    redis_url: RedisDsn
     jwt_secret_key: str
     ref_jwt_secret_key: str
     second_signer_key: str
