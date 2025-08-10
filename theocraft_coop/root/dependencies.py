@@ -76,7 +76,7 @@ async def verify_access_token(token: str):
     try:
         payload = jwt.decode(token=jwt_token, key=SECRET_KEY, algorithms=[ALGORITHM])
 
-        id: str = payload.get("admin_uid")
+        id: str = payload.get("id")
         if id is None:
             LOGGER.error(f"Decrypted JWT has not id in payload. {payload}")
             raise credentials_exception()
@@ -105,7 +105,7 @@ async def verify_refresh_token(token: str):
         payload = jwt.decode(
             token=jwt_token, key=REFRESH_SECRET_KEY, algorithms=ALGORITHM
         )
-        id: str = payload.get("admin_uid")
+        id: str = payload.get("id")
         if id is None:
             raise credentials_exception()
 

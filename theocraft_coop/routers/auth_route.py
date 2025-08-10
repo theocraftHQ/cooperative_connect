@@ -51,7 +51,7 @@ async def login(login_cred: schemas.Login):
     "/me", response_model=schemas.UserProfile, status_code=status.HTTP_200_OK
 )
 async def me(current_user_profile: Current_User):
-    return schemas.UserProfile(**current_user_profile.as_dict())
+    return current_user_profile
 
 
 @api_router.get(
@@ -84,4 +84,27 @@ async def reset_password(
     new_password: str = Body(embed=True),
 ):
     user = await user_service.reset_password(token=token, new_password=new_password)
-    return schemas.UserProfile(**user.as_dict())
+    return user
+
+
+@api_router.post(
+    "/verify-token",
+    status_code=status.HTTP_200_OK,
+)
+async def verify_token(
+    code: str = Body(embed=True, example="123456"),
+):
+    return await user_service.verify_mfa_token(code=code)
+
+
+@api_router.patch(
+    "/onboard",
+    response_model=schemas.UserProfile,
+    status_code=status.HTTP_200_OK,
+)
+async def update_user(
+    user_update: schemas.UserUpdate, current_user_profile: Current_User
+):
+    return await user_service.user_update(
+        user_update=user_update, user_id=current_user_profile.id
+    )

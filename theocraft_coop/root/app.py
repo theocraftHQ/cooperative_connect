@@ -2,7 +2,8 @@ import logging
 
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
-from root.api_router import router
+
+from theocraft_coop.root.api_router import router
 
 LOGGER = logging.getLogger(__name__)
 

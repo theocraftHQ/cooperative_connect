@@ -1,8 +1,9 @@
 import logging
-from uuid import UUID, uuid5
+from uuid import UUID, uuid4
 
 from sqlalchemy import delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy.orm import joinedload
 
 import theocraft_coop.schemas.user_schemas as schemas
 from theocraft_coop.database.orms.user_orm import MfaToken as MfaToken_DB
@@ -34,7 +35,7 @@ async def create_user(user: schemas.User):
             raise CreateError
 
         await session.commit()
-        return result
+        return schemas.UserProfile(**result.as_dict())
 
 
 async def get_user(email: str = None, phone_number: str = None):
@@ -52,19 +53,23 @@ async def get_user(email: str = None, phone_number: str = None):
         if not result:
             raise NotFound
 
-        return result
+        return schemas.UserProfile(**result.as_dict())
 
 
 async def get(user_id: UUID):
     async with async_session() as session:
         result = (
-            await session.execute(select(User_DB).where(User_DB.id == user_id))
+            await session.execute(
+                select(User_DB)
+                .options(joinedload(User_DB.bio))
+                .where(User_DB.id == user_id)
+            )
         ).scalar_one_or_none()
 
         if not result:
             raise NotFound
 
-        return result
+        return schemas.UserProfile(**result.as_dict(), bio=result.bio)
 
 
 async def update_user(user_update: schemas.UserUpdate, user_id: UUID):
@@ -73,7 +78,11 @@ async def update_user(user_update: schemas.UserUpdate, user_id: UUID):
         stmt = (
             update(User_DB)
             .where(User_DB.id == user_id)
-            .values(user_update.model_dump(exclude_none=True, exclude_unset=True))
+            .values(
+                user_update.model_dump(
+                    exclude_none=True, exclude_unset=True, exclude={"user_bio"}
+                )
+            )
             .returning(User_DB)
         )
 
@@ -83,7 +92,7 @@ async def update_user(user_update: schemas.UserUpdate, user_id: UUID):
             raise UpdateError
 
         await session.commit()
-        return result
+        return schemas.UserProfile(**result.as_dict())
 
 
 async def delete_user(): ...
@@ -154,7 +163,10 @@ async def update_mfa_token(id: UUID, verified: bool = False):
         stmt = (
             update(MfaToken_DB)
             .filter(MfaToken_DB.id == id)
-            .values(code=f"XXYYZZ-{uuid5()}", verified=verified)
+            .values(
+                code=f"XXYYZZ-{uuid4()}",
+                verified=verified,
+            )
             .returning(MfaToken_DB)
         )
 
@@ -190,7 +202,7 @@ async def create_user_bio(user_bio: schemas.UserBio, user_id: UUID):
         stmt = (
             insert(UserBio_DB)
             .values(
-                user_bio.model_dump(exclude_none=True, exclude_unset=True),
+                **user_bio.model_dump(exclude_none=True, exclude_unset=True),
                 user_id=user_id,
             )
             .returning(UserBio_DB)
@@ -205,7 +217,7 @@ async def create_user_bio(user_bio: schemas.UserBio, user_id: UUID):
             )
 
         await session.commit()
-        return result
+        return schemas.UserBio(**result.as_dict())
 
 
 async def get_user_bio(user_id: UUID):
@@ -217,7 +229,7 @@ async def get_user_bio(user_id: UUID):
         if not result:
             raise NotFound(f"User Bio not found for user_id: {user_id}")
 
-        return result
+        return schemas.UserBio(**result.as_dict())
 
 
 async def update_user_bio(user_bio: schemas.UserBio, user_id: UUID):
@@ -225,7 +237,7 @@ async def update_user_bio(user_bio: schemas.UserBio, user_id: UUID):
         stmt = (
             update(UserBio_DB)
             .filter(UserBio_DB.user_id == user_id)
-            .values(user_bio.model_dump(exclude_none=True, exclude_unset=True))
+            .values(**user_bio.model_dump(exclude_none=True, exclude_unset=True))
             .returning(UserBio_DB)
         )
 
@@ -236,4 +248,4 @@ async def update_user_bio(user_bio: schemas.UserBio, user_id: UUID):
             raise UpdateError(f"User Bio update failed for user_id: {user_id}")
 
         await session.commit()
-        return result
+        return schemas.UserBio(**result.as_dict())

@@ -31,8 +31,9 @@ async def send_sms(message: str, phone_number: str):
         response = await client.post(url=url, json=data)
 
         response.raise_for_status()
-
+        LOGGER.info("OTP SENT")
         return True
     except Exception:
+        LOGGER.error(f"OTP Failed to SEND:{message}")
 
         return False

@@ -1,10 +1,10 @@
-from datetime import datetime
+from datetime import date, datetime
 from typing import Optional
 from uuid import UUID
 
 from pydantic import EmailStr, Field
 
-from theocraft_coop.root.connect_enums import UserType
+from theocraft_coop.root.connect_enums import Gender, UserType
 from theocraft_coop.root.utils.base_schemas import (
     AbstractModel,
     CoopInt,
@@ -33,10 +33,18 @@ class User(Login):
     user_type: UserType = UserType.coop_member
 
 
+class Address(AbstractModel):
+    street: str
+    city: str
+    state: str
+    country: str
+    postal_code: Optional[str] = None
+
+
 class UserBio(AbstractModel):
     bvn: Optional[str] = None
     identification: Optional[str] = None
-    address: Optional[dict] = None
+    address: Optional[Address] = None
     passport: Optional[str] = None
     signature: Optional[str] = None
 
@@ -52,17 +60,16 @@ class UserProfile(User):
     date_updated_utc: Optional[datetime] = None
     # excluding password
     password: str = Field(exclude=True)
-    email: EmailStr = Field(exclude=True)
+    email: Optional[EmailStr] = Field(exclude=True, default=None)
 
 
 class UserUpdate(AbstractModel):
     # TODO: Use a smarter method to make all fields optional
     first_name: Optional[str] = None
     last_name: Optional[str] = None
-    user_type: UserType
-    phone_number: Optional[PhoneNumber] = None
-    email: Optional[EmailStr] = None
-    password: Optional[str] = None
+    dob: Optional[date] = None
+    gender: Optional[Gender] = None
+    user_bio: Optional[UserBio] = None
 
 
 class TokenData(AbstractModel):

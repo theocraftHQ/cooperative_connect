@@ -37,5 +37,5 @@ class MfaToken(AbstractBase):
     code_expires_at = Column(
         DateTime,
         nullable=False,
-        default=lambda: datetime.utcnow() + timedelta(minutes=30),
+        default=lambda: datetime.now() + timedelta(minutes=30),
     )

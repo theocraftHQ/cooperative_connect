@@ -35,7 +35,7 @@ async def get_user_via_unique(email: str = None, phone_number: str = None):
 
 async def get_user(id: UUID):
     try:
-        return await user_db_handler.get_user(id=id)
+        return await user_db_handler.get(user_id=id)
     except NotFound as e:
         LOGGER.exception(e)
         LOGGER.error("user not found")
@@ -51,21 +51,27 @@ async def user_mfa_sign_up(phone_number: schemas.PhoneNumber):  # type: ignore
 
     except NotFound:
         code = toks_utils.token_gen()
-
-        mfa_token = await user_db_handler.create_mfa_token(
-            phone_number=phone_number, code=code
-        )
-        if mfa_token.phone_number:
-            await send_sms(
-                message=f"{mfa_token.code}", phone_number=mfa_token.phone_number
+        try:
+            await user_db_handler.get_mfa_token_via_user_info(phone_number=phone_number)
+            raise TheocraftBadRequestException(
+                message="mfa token already exists for this phone number"
             )
+        except NotFound:
 
-        if mfa_token.email:
-            pass
+            mfa_token = await user_db_handler.create_mfa_token(
+                phone_number=phone_number, code=code
+            )
+            if mfa_token.phone_number:
+                await send_sms(
+                    message=f"{mfa_token.code}", phone_number=mfa_token.phone_number
+                )
 
-        return {
-            "message": "mfa token created and sent",
-        }
+            if mfa_token.email:
+                pass
+
+            return {
+                "message": "mfa token created and sent",
+            }
 
 
 async def resend_token(phone_number: str = None, email: str = None):
@@ -104,7 +110,7 @@ async def resend_token(phone_number: str = None, email: str = None):
 
 async def verify_mfa_token(code: str):
     mfa_token = await user_db_handler.get_mfa_token(code=code)
-    if datetime.now(tz=timezone.utc) > mfa_token.code_expires_at:
+    if datetime.now() > mfa_token.code_expires_at:
         await user_db_handler.delete_mfa_token(id=mfa_token.id)
         code = toks_utils.token_gen()
         mfa_token = await user_db_handler.create_mfa_token(
@@ -221,13 +227,22 @@ async def update_user_bio(user_bio: schemas.UserBio, user_read: schemas.UserProf
 
 async def user_update(user_update: schemas.UserUpdate, user_id: UUID):
     try:
-        return await user_db_handler.update_user(
+        user = await user_db_handler.update_user(
             user_update=user_update, user_id=user_id
         )
+        user = await get_user(id=user.id)
+        if user_update.user_bio is not None:
+            user_bio = await update_user_bio(
+                user_bio=user_update.user_bio, user_read=user
+            )
+            user.bio = user_bio
+
+        return user
+
     except UpdateError as e:
         LOGGER.exception(e)
         LOGGER.error("unexplainable update error")
-        raise HTTPException()
+        raise TheocraftBadRequestException(message="user update failed")
 
 
 async def reset_password(code: int, new_password: str) -> user_db_handler.User_DB:
