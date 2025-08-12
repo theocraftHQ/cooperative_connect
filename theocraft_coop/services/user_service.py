@@ -302,6 +302,6 @@ async def forgot_password(
     #     payload={"token": token},
     #     template="user_auth/token_email_template.html",
     # )
-    return {"messge": "mail sent"}
+    return {"messge": "otp sent"}
     #     template="user_auth/token_email_template.html",
     # )

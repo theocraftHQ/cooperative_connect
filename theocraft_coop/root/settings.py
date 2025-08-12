@@ -16,8 +16,12 @@ class Settings(AbstractSettings):
     mail_port: int
     mail_server: str
     sms_url: str
-    sms_username: str
     sms_apikey: str
+    sms_username: str
+    aws_access_key: str
+    aws_secret_key: str
+    aws_bucket: str
+    aws_region_name: str
     app_name: str = "Theocraft Coop"
 
 

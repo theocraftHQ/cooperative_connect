@@ -39,3 +39,8 @@ class MfaToken(AbstractBase):
         nullable=False,
         default=lambda: datetime.now() + timedelta(minutes=30),
     )
+
+
+# Cooperative -> [# Cooperative_Members]{"meta": {"level_info": 1000}}
+# Uploads (S3 uploads) [Signature]
+# Virtual Accounts [->user-->cooperative_account]

@@ -18,3 +18,8 @@ class Gender(StrEnum):
     male = "Male"
     female = "Female"
     other = "Other"
+
+
+class UploadPurpose(StrEnum):
+    signature = "SIGNATURE"
+    passport = "PASSPORT"

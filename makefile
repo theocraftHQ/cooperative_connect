@@ -29,22 +29,16 @@ local_migrate_up:
 
 
 
-local-migrate-down:
+local-migrate_down:
 	alembic -c local_dev_alembic.ini downgrade -"$(STEP)"
-
 
 local-head:
 	alembic -c local_dev_alembic.ini heads
 
-
-
 member_server:
 	uvicorn theocraft_coop.root.app:app --reload --port=8000
-admin_server:
+coop_server:
 	uvicorn theocraft_coop.root.app:app --reload --port=8001
-
-
-
 
 format : 
 	$(BLACK) --preview ./project_name
