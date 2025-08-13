@@ -16,7 +16,7 @@ REGION_NAME = settings.aws_region_name
 async def file_uploader(file_name: str, data: any):
     session = get_session()
 
-    async with session.client(
+    async with session.create_client(
         "s3",
         config=AioConfig(s3={"addressing_style": "virtual"}),
         region_name=REGION_NAME,
@@ -37,7 +37,7 @@ async def file_uploader(file_name: str, data: any):
             Bucket=BUCKET,
             Key=file_name,
             Body=await data.read(),
-            ACL="public-read",  # Optional
+            # ACL="public-read",  # Optional
         )
 
     return {"file_name": f"https://{BUCKET}.s3.{REGION_NAME}.amazonaws.com/{file_name}"}
@@ -46,7 +46,7 @@ async def file_uploader(file_name: str, data: any):
 async def destroy_file(file_name: str):
     session = get_session()
 
-    async with session.client(
+    async with session.create_client(
         "s3",
         config=AioConfig(s3={"addressing_style": "virtual"}),
         region_name=REGION_NAME,
@@ -55,3 +55,22 @@ async def destroy_file(file_name: str):
     ) as client:
         await client.delete_object(Bucket=BUCKET, Key=file_name)
     return
+
+
+async def get_presigned_url(file_name: str, expires_in: int = 72000):
+    """Generate a presigned URL for temporary file access."""
+    session = get_session()
+
+    async with session.create_client(
+        "s3",
+        config=AioConfig(s3={"addressing_style": "virtual"}),
+        region_name=REGION_NAME,
+        aws_access_key_id=BUCKET_ACCESS_KEY,
+        aws_secret_access_key=BUCKET_SECRET_KEY,
+    ) as client:
+        url = await client.generate_presigned_url(
+            "get_object",
+            Params={"Bucket": BUCKET, "Key": file_name},
+            ExpiresIn=expires_in,  # time in seconds
+        )
+        return url

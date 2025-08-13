@@ -29,7 +29,7 @@ local_migrate_up:
 
 
 
-local-migrate_down:
+local_migrate_down:
 	alembic -c local_dev_alembic.ini downgrade -"$(STEP)"
 
 local-head:
