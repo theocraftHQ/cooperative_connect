@@ -22,11 +22,15 @@ class User(AbstractBase):
 class UserBio(AbstractBase):
     user_id = Column(UUID, ForeignKey("user.id"), nullable=False)
     bvn = Column(String, nullable=True)
-    identification = Column(String, nullable=True)
+    identification = Column(UUID, ForeignKey("file.id"), nullable=True)
     address = Column(JSONB, default=False)
-    passport = Column(String, nullable=True)
-    signature = Column(String, nullable=False)
+    passport = Column(UUID, ForeignKey("file.id"), nullable=True)
+    signature = Column(UUID, ForeignKey("file.id"), nullable=False)
     user = relationship("User", back_populates="bio")
+
+    identification_file = relationship("File", foreign_keys=[identification])
+    passport_file = relationship("File", foreign_keys=[passport])
+    signature_file = relationship("File", foreign_keys=[signature])
 
 
 class MfaToken(AbstractBase):

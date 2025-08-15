@@ -4,7 +4,7 @@ from uuid import UUID
 
 from pydantic import EmailStr, Field
 
-from theocraft_coop.root.connect_enums import Gender, UserType
+from theocraft_coop.root.connect_enums import Gender, UploadPurpose, UserType
 from theocraft_coop.root.utils.base_schemas import (
     AbstractModel,
     CoopInt,
@@ -43,10 +43,23 @@ class Address(AbstractModel):
 
 class UserBio(AbstractModel):
     bvn: Optional[str] = None
-    identification: Optional[str] = None
+    identification: Optional[UUID] = None
     address: Optional[Address] = None
-    passport: Optional[str] = None
-    signature: Optional[str] = None
+    passport: Optional[UUID] = None
+    signature: Optional[UUID] = None
+
+
+class FileLite(AbstractModel):
+    id: UUID
+    purpose: UploadPurpose
+    file_name: str
+    link: str
+
+
+class UserBioRead(UserBio):
+    identification_file: Optional[FileLite] = None
+    passport_file: Optional[FileLite] = None
+    signature_file: Optional[FileLite] = None
 
 
 class UserOnboard(User):
@@ -55,7 +68,7 @@ class UserOnboard(User):
 
 class UserProfile(User):
     id: UUID
-    bio: Optional[UserBio] = None
+    bio: Optional[UserBioRead] = None
     date_created_utc: datetime
     date_updated_utc: Optional[datetime] = None
     # excluding password

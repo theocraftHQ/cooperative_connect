@@ -6,6 +6,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
 import theocraft_coop.schemas.user_schemas as schemas
+from theocraft_coop.database.orms.misc_orm import File
 from theocraft_coop.database.orms.user_orm import MfaToken as MfaToken_DB
 from theocraft_coop.database.orms.user_orm import User as User_DB
 from theocraft_coop.database.orms.user_orm import UserBio as UserBio_DB
@@ -59,12 +60,22 @@ async def get_user(email: str = None, phone_number: str = None):
 async def get(user_id: UUID):
     async with async_session() as session:
         result = (
-            await session.execute(
-                select(User_DB)
-                .options(joinedload(User_DB.bio))
-                .where(User_DB.id == user_id)
+            (
+                await session.execute(
+                    select(User_DB)
+                    .options(
+                        joinedload(User_DB.bio).joinedload(
+                            UserBio_DB.identification_file
+                        ),
+                        joinedload(User_DB.bio).joinedload(UserBio_DB.passport_file),
+                        joinedload(User_DB.bio).joinedload(UserBio_DB.signature_file),
+                    )
+                    .where(User_DB.id == user_id)
+                )
             )
-        ).scalar_one_or_none()
+            .unique()
+            .scalar_one_or_none()
+        )
 
         if not result:
             raise NotFound
