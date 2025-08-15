@@ -47,13 +47,18 @@ async def get_user(id: UUID):
 async def user_mfa_sign_up(phone_number: Optional[schemas.PhoneNumber] = None, email: Optional[schemas.EmailStr] = None):  # type: ignore
 
     try:
-        await get_user_via_unique(phone_number=phone_number)
-        raise TheocraftBadRequestException(message="phone_number exist for user")
+
+        await get_user_via_unique(phone_number=phone_number, email=email)
+        raise TheocraftBadRequestException(
+            message="phone_number or email exist for user"
+        )
 
     except NotFound:
         code = toks_utils.token_gen()
         try:
-            await user_db_handler.get_mfa_token_via_user_info(phone_number=phone_number)
+            await user_db_handler.get_mfa_token_via_user_info(
+                phone_number=phone_number, email=email
+            )
             raise TheocraftBadRequestException(
                 message="mfa token already exists for this phone number"
             )
@@ -138,7 +143,13 @@ async def verify_mfa_token(code: str):
             )
 
         if mfa_token.email:
-            pass
+
+            await send_mail(
+                subject="MFA Token for Theocraft Coop",
+                reciepients=[mfa_token.email],
+                payload={"token": mfa_token.code},
+                template="user_auth/token_email_template.html",
+            )
 
         raise TheocraftBadRequestException(message="verification code has expired")
 

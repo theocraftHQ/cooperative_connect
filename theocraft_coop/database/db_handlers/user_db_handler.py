@@ -1,7 +1,7 @@
 import logging
 from uuid import UUID, uuid4
 
-from sqlalchemy import delete, insert, select, update
+from sqlalchemy import and_, delete, insert, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import joinedload
 
@@ -157,7 +157,9 @@ async def get_mfa_token_via_user_info(phone_number: str = None, email: str = Non
 
     async with async_session() as session:
 
-        stmt = select(MfaToken_DB).filter(*filter_array)
+        stmt = select(MfaToken_DB).filter(
+            and_(*filter_array, MfaToken_DB.verified == False)  # noqa: E712
+        )
 
         result = (await session.execute(statement=stmt)).scalar_one_or_none()
 
