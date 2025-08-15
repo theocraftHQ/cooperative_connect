@@ -1,9 +1,12 @@
+from typing import Optional
+
 from fastapi import APIRouter, Body, Header, status
 
 import theocraft_coop.schemas.user_schemas as schemas
 import theocraft_coop.services.user_service as user_service
 from theocraft_coop.root.connect_enums import UserType
 from theocraft_coop.root.dependencies import Current_User, get_new_access_token
+from theocraft_coop.root.theocraft_exception import TheocraftBadRequestException
 from theocraft_coop.root.utils.base_schemas import AbstractResponse
 
 api_router = APIRouter(prefix="/auth", tags=["User"])
@@ -14,8 +17,16 @@ api_router = APIRouter(prefix="/auth", tags=["User"])
     response_model=AbstractResponse,
     status_code=status.HTTP_201_CREATED,
 )
-async def user_sign_up(phone_number: schemas.PhoneNumber):
-    return await user_service.user_mfa_sign_up(phone_number=phone_number)
+async def user_sign_up(
+    phone_number: Optional[schemas.PhoneNumber] = Body(embed=True, default=None),
+    email: Optional[schemas.EmailStr] = Body(embed=True, default=None),
+):
+    if phone_number is None and email is None:
+        raise TheocraftBadRequestException(
+            message="phone number or email must be provided"
+        )
+
+    return await user_service.user_mfa_sign_up(phone_number=phone_number, email=email)
 
 
 @api_router.post(

@@ -16,6 +16,7 @@ from theocraft_coop.root.theocraft_exception import (
     TheocraftNotFoundException,
 )
 from theocraft_coop.root.utils.ebulk_sms import send_sms
+from theocraft_coop.root.utils.send_mail import send_mail
 from theocraft_coop.services.service_utils.exception_collection import (
     NotFound,
     UpdateError,
@@ -43,7 +44,7 @@ async def get_user(id: UUID):
         raise TheocraftNotFoundException(message="user not found")
 
 
-async def user_mfa_sign_up(phone_number: schemas.PhoneNumber):  # type: ignore
+async def user_mfa_sign_up(phone_number: Optional[schemas.PhoneNumber] = None, email: Optional[schemas.EmailStr] = None):  # type: ignore
 
     try:
         await get_user_via_unique(phone_number=phone_number)
@@ -67,7 +68,12 @@ async def user_mfa_sign_up(phone_number: schemas.PhoneNumber):  # type: ignore
                 )
 
             if mfa_token.email:
-                pass
+                await send_mail(
+                    subject="MFA Token for Signup on Theocraft Coop",
+                    reciepients=[email],
+                    payload={"token": code},
+                    template="user_auth/token_email_template.html",
+                )
 
             return {
                 "message": "mfa token created and sent",
@@ -97,7 +103,12 @@ async def resend_token(phone_number: str = None, email: str = None):
             )
 
         if mfa_token.email:
-            pass
+            await send_mail(
+                subject="MFA Token for Signup on Theocraft Coop",
+                reciepients=[email],
+                payload={"token": mfa_token.code},
+                template="user_auth/token_email_template.html",
+            )
 
         return
 
@@ -105,7 +116,12 @@ async def resend_token(phone_number: str = None, email: str = None):
         await send_sms(message=f"{mfa_token.code}", phone_number=mfa_token.phone_number)
 
     if mfa_token.email:
-        pass
+        await send_mail(
+            subject="MFA Token for Signup on Theocraft Coop",
+            reciepients=[email],
+            payload={"token": mfa_token.code},
+            template="user_auth/token_email_template.html",
+        )
 
 
 async def verify_mfa_token(code: str):
@@ -294,14 +310,13 @@ async def forgot_password(
         await send_sms(
             message=f"{mfa_code_read.code}", phone_number=mfa_code_read.phone_number
         )
-    # send mail
+    if mfa_code_read.email:
+        # send mail
+        await send_mail(
+            subject="Forgot Password",
+            reciepients=[email],
+            payload={"token": mfa_code_read.code},
+            template="user_auth/token_email_template.html",
+        )
 
-    # await send_mail(
-    #     subject="Forgot Password",
-    #     reciepients=[email],
-    #     payload={"token": token},
-    #     template="user_auth/token_email_template.html",
-    # )
     return {"messge": "otp sent"}
-    #     template="user_auth/token_email_template.html",
-    # )
