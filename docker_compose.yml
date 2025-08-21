@@ -1,0 +1,9 @@
+postgres:
+  image: postgres
+  ports:
+    - 5432:5432
+  environment:
+    - POSTGRES_PASSWORD=Blessing1
+    - POSTGRES_DB=soccerapi
+  volumes:
+    - postgres-db:/var/lib/postgresql/data
