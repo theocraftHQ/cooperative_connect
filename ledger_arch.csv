@@ -1,0 +1,21 @@
+ledger_id,account_code,account_name,account_type,description
+cooperative_gl,1000,Cash on Hand,asset,Cash physically held
+cooperative_gl,1010,Bank - Operating,asset,Main operating bank account
+cooperative_gl,1200,Loans Receivable - Principal,asset,Total loan principal owed to coop
+cooperative_gl,1210,Interest Receivable - Loans,asset,Accrued loan interest not yet paid
+cooperative_gl,2000,Member Savings,liability,Savings deposits owed to members
+cooperative_gl,2010,Interest Payable - Savings,liability,Interest accrued on member savings
+cooperative_gl,3000,Member Share Capital,equity,Capital invested by members
+cooperative_gl,3100,Retained Surplus,equity,Accumulated net income
+cooperative_gl,4000,Interest Income - Loans,income,Income from member loan interest
+cooperative_gl,4010,Fee Income,income,Processing fees, penalties
+cooperative_gl,5000,Interest Expense - Savings,expense,Cost of paying interest on savings
+cooperative_gl,5100,Loan Loss Provision Expense,expense,Expected credit loss expense
+cooperative_gl,5200,Operating Expenses,expense,General operating costs
+
+members_subsidiary,MEMBER_ID.savings,Savings,liability,Member's savings balance
+members_subsidiary,MEMBER_ID.share_capital,Member Share Capital,equity,Member's share ownership
+members_subsidiary,MEMBER_ID.loan_principal,Loan Principal,asset,Loan principal owed by member
+members_subsidiary,MEMBER_ID.loan_interest,Loan Interest,asset,Accrued loan interest owed by member
+members_subsidiary,MEMBER_ID.fees,Fees,income,Fees charged to member
+ 
