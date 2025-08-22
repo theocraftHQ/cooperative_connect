@@ -2,7 +2,7 @@ from theocraft_coop.root.utils.abstract_base import AbstractBase
 from sqlalchemy import Column, String, ForeignKey, DateTime, Numeric, Integer
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.orm import relationship
-import enum
+
 
 
 class CooperativeUser(AbstractBase):
@@ -15,7 +15,7 @@ class CooperativeUser(AbstractBase):
     avatar = Column(String, nullable=True)
     meta =  Column(JSONB, default=False, nullable=True)
 
-    cooperative = relationship("Cooperative", back_populates="cooperativeuser")
+    cooperative = relationship("Cooperative", back_populates="cooperative_user")
 
 class Cooperative(AbstractBase):
     coop_id = Column(String, nullable=False)
@@ -23,9 +23,9 @@ class Cooperative(AbstractBase):
     status = Column(String, nullable=False)
     onboarding_requirements = Column(JSONB, default=False, nullable=True) # requirements to join the coorporative
     meta = Column(JSONB, default=False, nullable=True) # stakeholder information and coorporative documents will be stored here
-    created_by = Column(UUID, ForeignKey("cooperativeuser.id"), nullable=False)
+    created_by = Column(UUID, ForeignKey("cooperative_user.id"), nullable=False)
     
-    cooperativeuser = relationship("CooperativeUser", back_populates="cooperative")
+    cooperative_user = relationship("CooperativeUser", back_populates="cooperative")
 
 class Member(AbstractBase):
     user_id = Column(UUID, ForeignKey("user.id"), nullable=False)

@@ -19,7 +19,7 @@ class CooperativeUserRole(StrEnum):
     STAFF = "staff"
 
 class MembershipStatus(StrEnum):
-    PENDING = "pending"
+    PENDING_APPROVAL = "pending_approval"
     ACTIVE = "active"
     INACTIVE = "inactive"
     SUSPENDED = "suspended"

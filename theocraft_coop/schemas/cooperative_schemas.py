@@ -1,5 +1,5 @@
 from datetime import date, datetime
-from typing import Optional
+from typing import List, Optional
 from uuid import UUID
 
 from pydantic import EmailStr, Field
@@ -74,7 +74,6 @@ class MembershipProfile(Membership):
     date_created_utc: datetime
     date_updated_utc: Optional[datetime] = None
 
-
 class MembershipUpdate(AbstractModel):
     date_joined: Optional[datetime] = None
     status: Optional[str] = None
@@ -86,4 +85,10 @@ class MembershipUpdate(AbstractModel):
     referrer: Optional[UUID] = None
     guarrantors: Optional[dict] = None
     meta: Optional[dict] = None
-    
+
+class PaginatedMembersResponse(AbstractModel):
+    members: List[MembershipProfile]
+    total_count: int
+    page: int
+    page_size: int
+    total_pages: int
