@@ -13,4 +13,3 @@ router.include_router(router=misc_router)
 router.include_router(router=coop_auth_router)
 router.include_router(router=coop_router)
 router.include_router(router=coop_member_router)
-

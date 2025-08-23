@@ -9,7 +9,9 @@ from itsdangerous import BadSignature, BadTimeSignature, URLSafeTimedSerializer
 from jose import ExpiredSignatureError, JWTError, jwt
 
 import theocraft_coop.services.user_service as admin_service
+import theocraft_coop.services.cooperative_service as cooperative_service
 from theocraft_coop.database.orms.user_orm import User
+from theocraft_coop.database.orms.cooperative_orm import CooperativeUser
 from theocraft_coop.root.settings import Settings
 from theocraft_coop.schemas.user_schemas import TokenData
 
@@ -146,3 +148,18 @@ async def get_current_user(
 
 
 Current_User = Annotated[User, Depends(get_current_user)]
+
+
+async def get_current_coop_user(
+    auth_credential: HTTPAuthorizationCredentials = Depends(bearer),
+):
+    if not auth_credential.credentials:
+        credentials_exception()
+
+    token = await verify_access_token(token=auth_credential.credentials)
+
+    user = await cooperative_service.get_coop_user_by_id(coop_user_id=token.id)
+    return user
+
+
+Current_Coop_User = Annotated[CooperativeUser, Depends(get_current_coop_user)]

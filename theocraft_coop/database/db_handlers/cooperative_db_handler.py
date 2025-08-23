@@ -36,7 +36,7 @@ async def create_coop_user(user: schemas.CooperativeUser, role: schemas.Cooperat
             await session.rollback()
             raise CreateError
         await session.commit()
-        return schemas.CooperativeUserProfile(**result.as_dict)
+        return schemas.CooperativeUserProfile(**result.as_dict())
 
 async def get_coop_user(email: str):
     async with async_session() as session:
@@ -92,7 +92,7 @@ async def create_cooperative(cooperative_details: schemas.Cooperative, created_b
             await session.rollback()
             raise CreateError
         await session.commit()
-        return schemas.CooperativeProfile(**result.as_dict)
+        return schemas.CooperativeProfile(**result.as_dict())
     
 async def get_cooperative(id: UUID): #user_id: UUID
     async with async_session() as session:
@@ -103,11 +103,11 @@ async def get_cooperative(id: UUID): #user_id: UUID
             raise NotFound
         return schemas.CooperativeProfile(**result.as_dict())
     
-async def update_cooperative(cooperative_details: schemas.CooperativeProfileUpdate, id: UUID):
+async def update_cooperative(cooperative_details: schemas.CooperativeProfileUpdate, coop_id: UUID):
     async with async_session() as session:
         stmt = (
             update(Cooperative_DB)
-            .where(Cooperative_DB.id == id)
+            .where(Cooperative_DB.id == coop_id)
             .values(
                 cooperative_details.model_dump(
                     exclude_none=True, exclude_unset=True

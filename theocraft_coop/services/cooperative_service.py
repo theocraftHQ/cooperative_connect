@@ -143,9 +143,9 @@ async def forgot_password(email: str):
 # ------- END OF COOP USER AUTH -------
 
 # ------- START OF COOPERATIVE MANAGEMENT -------
-async def create_cooperative(user_in: schemas.Cooperative, created_by: UUID):
+async def create_cooperative(coop_details: schemas.Cooperative, created_by: UUID):
     coop_id = f"COOP-{ShortUUID().random(length=10)}"
-    return await cooperative_db_handler.create_cooperative(user=user_in, created_by=created_by, coop_id=coop_id)
+    return await cooperative_db_handler.create_cooperative(cooperative_details=coop_details, created_by=created_by, coop_id=coop_id)
 
 async def get_cooperative(id: UUID):
     try:
@@ -155,10 +155,10 @@ async def get_cooperative(id: UUID):
         LOGGER.error("Cooperative not found")
         raise e
 
-async def update_cooperative(coop_update: schemas.CooperativeProfileUpdate, id: UUID):
+async def update_cooperative(coop_update: schemas.CooperativeProfileUpdate, coop_id: UUID):
     try:
         coop_update = await cooperative_db_handler.update_cooperative(
-            cooperative_details=coop_update, id=id
+            cooperative_details=coop_update, coop_id=coop_id
         )
         return coop_update
     except UpdateError as e:
@@ -192,7 +192,8 @@ async def get_all_coop_members(cooperative_id: UUID, status_filter: Optional[sch
     except NotFound as e:
         LOGGER.exception(e)
         LOGGER.error("No member(s) found")
-        raise e
+        raise TheocraftNotFoundException(message="No user found in cooperative")
+
 
 async def update_coop_membership(member_update: schemas.MembershipUpdate):
     try:

@@ -12,8 +12,7 @@ class Password(AbstractModel):
     password: Password
 
 class Login(Password):
-    email: Optional[EmailStr] = None
-    phone_number: Optional[PhoneNumber] = None
+    email: EmailStr
 
 class CooperativeUser(Login):
     first_name: str
@@ -47,12 +46,13 @@ class CooperativeProfile(Cooperative):
     id: UUID
     coop_id: str
     status: str
+    created_by: UUID
     date_created_utc: datetime
     date_updated_utc: Optional[datetime] = None
 
 class CooperativeProfileUpdate(AbstractModel):
     name: Optional[str] = None
-    onboarding_requirement: Optional[dict] = None
+    onboarding_requirements: Optional[dict] = None
     meta: Optional[dict] = None
 
 class Membership(AbstractModel):

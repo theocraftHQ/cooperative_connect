@@ -39,7 +39,7 @@ class Member(AbstractBase):
     credit_score = Column(Integer, nullable=False, default=0)
     emergency_contact = Column(JSONB, default=False, nullable=False)
     guarrantors = Column(JSONB, default=False, nullable=False)
-    referrer = Column(UUID, ForeignKey("user.id"), nullable=False)
+    # referrer = Column(UUID, ForeignKey("user.id"), nullable=False) # Need to create a separate table for referral and referral_code
     meta =  Column(JSONB, default=False, nullable=False) #onboarding data will be stored here, who created the account and who approved the account
 
     user = relationship("User")
