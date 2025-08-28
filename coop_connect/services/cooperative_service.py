@@ -173,11 +173,13 @@ async def _get_coop_member_via_user_id(user_id: UUID, cooperative_id: UUID):
 
 
 async def get_coop_member_role(user_id: UUID, cooperative_id: UUID):
-
-    cooperative_member = await _get_coop_member_via_user_id(
-        user_id=user_id, cooperative_id=cooperative_id
-    )
-    return cooperative_member.membership_type
+    try:
+        cooperative_member = await _get_coop_member_via_user_id(
+            user_id=user_id, cooperative_id=cooperative_id
+        )
+        return cooperative_member.role, cooperative_member.status
+    except NotFound:
+        raise ConnectNotFoundException(message="user is not a member of cooperative")
 
 
 async def get_coop_member(member_id: UUID, cooperative_id: UUID):

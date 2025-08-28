@@ -7,7 +7,7 @@ from coop_connect.root.connect_exception import (
     ConnectNotFoundException,
     ConnectPermissionException,
 )
-from coop_connect.root.coop_enums import CooperativeUserRole, UserType
+from coop_connect.root.coop_enums import CooperativeUserRole, MembershipStatus, UserType
 from coop_connect.root.dependencies import Current_User
 from coop_connect.services.service_utils.exception_collection import NotFound
 
@@ -22,30 +22,139 @@ class PermissionsDependency:
             permission_class(request=request)
 
 
-class CoopBasePermission(ABC):
+class UserBasePermission(ABC):
 
     user_role_error_msg = (
-        "You dont have access to this cooperative resource. Please cant your Admin"
+        "You dont have access to carry out this action. Please contact Support"
     )
 
-    coop_role = None
+    user_role = None
 
     @abstractmethod
     def has_required_permission(self, request: Request) -> bool: ...
 
     def __init__(self, request: Request):
-        try:
-            self.coop_role = coop_service.get_coop_member_role(
-                user_id=request.state.user,
-                coop_id=request.path_params["coop_id"],  # extracted from router path
-            )
+        self.user_role = request.state.user.user_type
 
-            if not self.has_required_permission(request=request):
-                raise ConnectPermissionException(message=self.user_role_error_msg)
+        if not self.has_required_permission(request=request):
+            raise ConnectPermissionException(message=self.user_role_error_msg)
 
-        except NotFound:
-            raise ConnectNotFoundException(
-                message="user is not a member of cooperative"
-            )
 
-        super().__init__()
+class CoopAdminorSuperAdminOnly(UserBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return self.user_role == [UserType.admin, UserType.coop_admin]
+
+
+class CoopBasePermission(ABC):
+
+    user_role_error_msg = (
+        "You dont have access to this cooperative resource. Please contact your Admins"
+    )
+
+    coop_role = None
+
+    coop_member_status = None
+
+    edge_status = [
+        MembershipStatus.INACTIVE,
+        MembershipStatus.PENDING_APPROVAL,
+        MembershipStatus.SUSPENDED,
+        MembershipStatus.TERMINATED,
+    ]
+
+    @abstractmethod
+    def has_required_permission(self, request: Request) -> bool: ...
+
+    def __init__(self, request: Request):
+
+        self.coop_role, self.coop_member_status = coop_service.get_coop_member_role(
+            user_id=request.state.user.id,
+            coop_id=request.path_params["coop_id"],  # extracted from router path
+        )
+
+        if not self.has_required_permission(request=request):
+            raise ConnectPermissionException(message=self.user_role_error_msg)
+
+
+class CoopStaffOnly(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role == CooperativeUserRole.STAFF
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopTresuserOnly(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role == CooperativeUserRole.TREASURER
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopSecretaryOnly(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role == CooperativeUserRole.SECRETARY
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopPresidentOnly(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role == CooperativeUserRole.PRESIDENT
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopAccountantOnly(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role == CooperativeUserRole.ACCOUNTANT
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopFinancialPerm(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role
+            in [
+                CooperativeUserRole.TREASURER,
+                CooperativeUserRole.ACCOUNTANT,
+            ]
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopGeneralPerm(CoopBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role
+            in [
+                CooperativeUserRole.STAFF,
+                CooperativeUserRole.TREASURER,
+                CooperativeUserRole.SECRETARY,
+                CooperativeUserRole.PRESIDENT,
+                CooperativeUserRole.ACCOUNTANT,
+            ]
+            and self.coop_member_status not in self.edge_status
+        )
+
+
+class CoopAllRoles(CoopBasePermission):
+
+    def has_required_permission(self, request: Request) -> bool:
+        return (
+            self.coop_role
+            in [
+                CooperativeUserRole.STAFF,
+                CooperativeUserRole.TREASURER,
+                CooperativeUserRole.SECRETARY,
+                CooperativeUserRole.PRESIDENT,
+                CooperativeUserRole.ACCOUNTANT,
+                CooperativeUserRole.MEMBER,
+            ]
+            and self.coop_member_status not in self.edge_status
+        )

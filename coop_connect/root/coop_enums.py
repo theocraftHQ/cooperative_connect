@@ -20,6 +20,7 @@ class CooperativeUserRole(StrEnum):
     TREASURER = "treasurer"
     ACCOUNTANT = "accountant"
     STAFF = "staff"
+    MEMBER = "member"
 
 
 class MembershipStatus(StrEnum):

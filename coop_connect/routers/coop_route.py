@@ -10,6 +10,11 @@ from fastapi import APIRouter, Depends, status
 import coop_connect.schemas.cooperative_schemas as schemas
 import coop_connect.services.cooperative_service as cooperative_service
 from coop_connect.root.dependencies import Current_User
+from coop_connect.root.permission import (
+    CoopAdminorSuperAdminOnly,
+    CoopGeneralPerm,
+    PermissionsDependency,
+)
 
 api_router = APIRouter(prefix="/coop", tags=["Cooperative Admin & Management"])
 
@@ -18,6 +23,7 @@ api_router = APIRouter(prefix="/coop", tags=["Cooperative Admin & Management"])
     "/",
     response_model=schemas.CooperativeProfile,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(PermissionsDependency([CoopAdminorSuperAdminOnly]))],
 )
 async def create_cooperative(
     coop_in: schemas.Cooperative, current_user_profile: Current_User
@@ -43,7 +49,7 @@ async def get_cooperatives(
     response_model=schemas.CooperativeProfile,
     status_code=status.HTTP_200_OK,
 )
-async def get_cooperative(coop_id: UUID, current_user_profile: Current_User):
+async def get_cooperative(coop_id: UUID, current_user: Current_User):
     return await cooperative_service.get_cooperative(id=coop_id)
 
 
@@ -51,13 +57,13 @@ async def get_cooperative(coop_id: UUID, current_user_profile: Current_User):
     "/{coop_id}",
     response_model=schemas.CooperativeProfile,
     status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(PermissionsDependency([CoopGeneralPerm]))],
 )
 async def update_cooperative(
     coop_update_in: schemas.CooperativeUpdate,
     coop_id: UUID,
     current_user: Current_User,
 ):
-    # TODO DEPENDENCY FOR COOPERATIVE MEMBER
     return await cooperative_service.update_cooperative(
         coop_update_in=coop_update_in, coop_id=coop_id, member_id=current_user.id
     )

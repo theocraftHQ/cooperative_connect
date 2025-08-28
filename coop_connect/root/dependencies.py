@@ -13,6 +13,7 @@ import coop_connect.services.user_service as admin_service
 from coop_connect.database.orms.cooperative_orm import CooperativeUser
 from coop_connect.database.orms.user_orm import User
 from coop_connect.root.settings import Settings
+from coop_connect.schemas.cooperative_schemas import CooperativeProfile
 from coop_connect.schemas.user_schemas import TokenData
 
 LOGGER = logging.getLogger(__name__)
@@ -154,16 +155,7 @@ async def get_current_user(
     return user
 
 
-async def get_current_coop_user(
-    auth_credential: HTTPAuthorizationCredentials = Depends(bearer),
-):
-    if not auth_credential.credentials:
-        credentials_exception()
-
-    token = await verify_access_token(token=auth_credential.credentials)
-
-    # user = await cooperative_service.get_coop_user_by_id(coop_user_id=token.id)
-    # return user
-
-
 Current_User = Annotated[User, Depends(get_current_user)]
+CurrentUnprotectedCooperative = Annotated[
+    CooperativeProfile, Depends(cooperative_service.get_cooperative)
+]
