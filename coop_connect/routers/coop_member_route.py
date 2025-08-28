@@ -73,7 +73,7 @@ async def get_coop_membership(
     "/{member_id}",
     response_model=schemas.MembershipProfile,
     status_code=status.HTTP_200_OK,
-    dependencies=[PermissionsDependency([CoopGeneralPerm])],
+    dependencies=[Depends(PermissionsDependency([CoopGeneralPerm]))],
 )
 async def update_membership(
     member_id: UUID,

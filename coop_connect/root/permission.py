@@ -42,7 +42,7 @@ class UserBasePermission(ABC):
 
 class CoopAdminorSuperAdminOnly(UserBasePermission):
     def has_required_permission(self, request: Request) -> bool:
-        return self.user_role == [UserType.admin, UserType.coop_admin]
+        return self.user_role in [UserType.admin, UserType.coop_admin]
 
 
 class CoopBasePermission(ABC):
@@ -75,6 +75,14 @@ class CoopBasePermission(ABC):
         if not self.has_required_permission(request=request):
             raise ConnectPermissionException(message=self.user_role_error_msg)
 
+    def is_active(self) -> bool:
+        if self.coop_member_status in self.edge_status:
+
+            raise ConnectNotFoundException(
+                message="Your cooperative membership is not active"
+            )
+        return True
+
 
 class CoopStaffOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
@@ -86,34 +94,22 @@ class CoopStaffOnly(CoopBasePermission):
 
 class CoopTresuserOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
-        return (
-            self.coop_role == CooperativeUserRole.TREASURER
-            and self.coop_member_status not in self.edge_status
-        )
+        return self.coop_role == CooperativeUserRole.TREASURER and self.is_active()
 
 
 class CoopSecretaryOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
-        return (
-            self.coop_role == CooperativeUserRole.SECRETARY
-            and self.coop_member_status not in self.edge_status
-        )
+        return self.coop_role == CooperativeUserRole.SECRETARY and self.is_active()
 
 
 class CoopPresidentOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
-        return (
-            self.coop_role == CooperativeUserRole.PRESIDENT
-            and self.coop_member_status not in self.edge_status
-        )
+        return self.coop_role == CooperativeUserRole.PRESIDENT and self.is_active()
 
 
 class CoopAccountantOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
-        return (
-            self.coop_role == CooperativeUserRole.ACCOUNTANT
-            and self.coop_member_status not in self.edge_status
-        )
+        return self.coop_role == CooperativeUserRole.ACCOUNTANT and self.is_active()
 
 
 class CoopFinancialPerm(CoopBasePermission):
@@ -124,7 +120,7 @@ class CoopFinancialPerm(CoopBasePermission):
                 CooperativeUserRole.TREASURER,
                 CooperativeUserRole.ACCOUNTANT,
             ]
-            and self.coop_member_status not in self.edge_status
+            and self.is_active()
         )
 
 
@@ -139,7 +135,7 @@ class CoopGeneralPerm(CoopBasePermission):
                 CooperativeUserRole.PRESIDENT,
                 CooperativeUserRole.ACCOUNTANT,
             ]
-            and self.coop_member_status not in self.edge_status
+            and self.is_active()
         )
 
 
@@ -156,5 +152,5 @@ class CoopAllRoles(CoopBasePermission):
                 CooperativeUserRole.ACCOUNTANT,
                 CooperativeUserRole.MEMBER,
             ]
-            and self.coop_member_status not in self.edge_status
+            and self.is_active()
         )
