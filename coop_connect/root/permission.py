@@ -119,6 +119,7 @@ class CoopFinancialPerm(CoopBasePermission):
             in [
                 CooperativeUserRole.TREASURER,
                 CooperativeUserRole.ACCOUNTANT,
+                CooperativeUserRole.PRESIDENT,
             ]
             and self.is_active()
         )

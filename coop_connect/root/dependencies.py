@@ -154,7 +154,10 @@ async def get_current_user(
     return user
 
 
+async def get_cooperative(coop_id: UUID):
+
+    return await cooperative_service.get_cooperative(id=coop_id)
+
+
 Current_User = Annotated[User, Depends(get_current_user)]
-CurrentUnprotectedCooperative = Annotated[
-    CooperativeProfile, Depends(cooperative_service.get_cooperative)
-]
+CurrentUnprotectedCooperative = Annotated[CooperativeProfile, Depends(get_cooperative)]

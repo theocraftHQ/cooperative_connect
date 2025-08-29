@@ -73,7 +73,7 @@ async def get_cooperatives(**kwargs):
 
         statement = (
             select(Cooperative_DB)
-            .filter(and_(filter_array))
+            .filter(and_(*filter_array))
             .offset(offset=offset)
             .limit(limit=limit)
         )
