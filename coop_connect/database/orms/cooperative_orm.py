@@ -16,7 +16,7 @@ class Cooperative(AbstractBase):
 
     created_by = Column(UUID, ForeignKey("user.id"), nullable=False)
 
-    user = relationship("User", back_populates="cooperative")
+    user = relationship("User", back_populates="cooperatives")
 
 
 class Member(AbstractBase):
@@ -43,4 +43,5 @@ class Member(AbstractBase):
     shares_owned = Column(Numeric(1), nullable=False, default=0)
     total_deposits = Column(Numeric(15, 2), nullable=False, default=0)
     credit_score = Column(Integer, nullable=False, default=0)
-    user = relationship("User")
+    user = relationship("User", foreign_keys=[user_id])
+    user_bio = relationship("UserBio", foreign_keys=[user_bio])

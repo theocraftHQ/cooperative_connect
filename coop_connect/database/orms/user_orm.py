@@ -17,6 +17,7 @@ class User(AbstractBase):
     dob = Column(DateTime, nullable=True)
     gender = Column(String, nullable=True)
     bio = relationship("UserBio", back_populates="user", uselist=False)
+    cooperatives = relationship("Cooperative", back_populates="user")
 
 
 class UserBio(AbstractBase):
