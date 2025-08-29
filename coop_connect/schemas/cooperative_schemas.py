@@ -11,11 +11,12 @@ from coop_connect.root.coop_enums import (
     MembershipType,
 )
 from coop_connect.root.utils.base_schemas import AbstractModel, CoopInt, PaginationModel
+from coop_connect.schemas.form_schemas import Form, FormResponse
 
 
 class Cooperative(AbstractModel):
     name: str
-    onboarding_requirements: dict
+    onboarding_requirements: Optional[Form] = {}
     meta: dict
     public_listing: bool = False
 
@@ -47,7 +48,7 @@ class PaginatedCooperativeProfile(AbstractModel):
 class CooperativeUpdate(AbstractModel):
     name: Optional[str] = None
     public_listing: Optional[bool] = None
-    onboarding_requirements: Optional[dict] = None
+    onboarding_requirements: Optional[Form] = None
     meta: Optional[dict] = None
 
 
@@ -55,6 +56,7 @@ class MembershipIn(AbstractModel):
     user_id: UUID
     membership_type: MembershipType = MembershipType.REGULAR
     emergency_contact: Optional[dict] = {}
+    onboarding_response: FormResponse
     referrer: Optional[UUID] = None
     guarrantors: Optional[dict] = None
     meta: Optional[dict] = None
@@ -70,6 +72,7 @@ class MembershipExtended(MembershipIn):
 class MembershipProfile(MembershipExtended):
     id: UUID
     date_joined: Optional[datetime] = None
+    onboarding_response: FormResponse
     shares_owned: int
     total_deposit: int
     credit_score: int
@@ -79,6 +82,7 @@ class MembershipProfile(MembershipExtended):
 
 class MembershipUpdate(AbstractModel):
     date_joined: Optional[datetime] = None
+    onboarding_response: Optional[FormResponse] = None
     status: Optional[str] = None
     shares_owned: Optional[int] = None
     total_deposit: Optional[int] = None

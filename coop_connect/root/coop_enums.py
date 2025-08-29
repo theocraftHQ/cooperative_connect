@@ -51,3 +51,15 @@ class Gender(StrEnum):
 class UploadPurpose(StrEnum):
     signature = "SIGNATURE"
     passport = "PASSPORT"
+
+
+class QuestionType(StrEnum):
+    SHORT_TEXT = "short_text"
+    LONG_TEXT = "long_text"
+    SINGLE_CHOICE = "single_choice"
+    MULTIPLE_CHOICE = "multiple_choice"
+    DROPDOWN = "dropdown"
+    DATE = "date"
+    TIME = "time"
+    NUMBER = "number"
+    FILE_UPLOAD = "file_upload"
