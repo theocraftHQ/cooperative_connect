@@ -140,7 +140,7 @@ async def get_current_user(
     auth_credential: HTTPAuthorizationCredentials = Depends(bearer),
 ):
 
-    if getattr(request.state.user, None):
+    if getattr(request.state, "user", None):
         return request.state.user
 
     if not auth_credential.credentials:

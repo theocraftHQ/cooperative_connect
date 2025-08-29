@@ -44,4 +44,5 @@ class Member(AbstractBase):
     total_deposits = Column(Numeric(15, 2), nullable=False, default=0)
     credit_score = Column(Integer, nullable=False, default=0)
     user = relationship("User", foreign_keys=[user_id])
-    user_bio = relationship("UserBio", foreign_keys=[user_bio])
+    bio = relationship("UserBio", back_populates="member", foreign_keys=[user_bio])
+    cooperative = relationship("Cooperative", foreign_keys=[cooperative_id])

@@ -31,6 +31,7 @@ class UserBio(AbstractBase):
     identification_file = relationship("File", foreign_keys=[identification])
     passport_file = relationship("File", foreign_keys=[passport])
     signature_file = relationship("File", foreign_keys=[signature])
+    member = relationship("Member", back_populates="bio", uselist=False)
 
 
 class MfaToken(AbstractBase):
