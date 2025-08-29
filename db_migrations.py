@@ -1,4 +1,4 @@
-from theocraft_coop.root import app
-from theocraft_coop.root.database import create_migration
+from coop_connect.root import app
+from coop_connect.root.database import create_migration
 
 create_migration()

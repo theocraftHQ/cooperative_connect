@@ -10,7 +10,6 @@ from jose import ExpiredSignatureError, JWTError, jwt
 
 import coop_connect.services.cooperative_service as cooperative_service
 import coop_connect.services.user_service as admin_service
-from coop_connect.database.orms.cooperative_orm import CooperativeUser
 from coop_connect.database.orms.user_orm import User
 from coop_connect.root.settings import Settings
 from coop_connect.schemas.cooperative_schemas import CooperativeProfile

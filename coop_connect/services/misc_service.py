@@ -3,10 +3,10 @@ from typing import List
 
 from fastapi import UploadFile
 
-import theocraft_coop.database.db_handlers.file_db_handler as file_db_handler
-import theocraft_coop.services.service_utils.uploader_utils as space_utils
-from theocraft_coop.schemas.file_schemas import File, UploadPurpose
-from theocraft_coop.schemas.user_schemas import UserProfile
+import coop_connect.database.db_handlers.file_db_handler as file_db_handler
+import coop_connect.services.service_utils.uploader_utils as space_utils
+from coop_connect.schemas.file_schemas import File, UploadPurpose
+from coop_connect.schemas.user_schemas import UserProfile
 
 LOGGER = logging.getLogger(__name__)
 

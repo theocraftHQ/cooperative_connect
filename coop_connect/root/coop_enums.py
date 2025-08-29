@@ -51,4 +51,3 @@ class Gender(StrEnum):
 class UploadPurpose(StrEnum):
     signature = "SIGNATURE"
     passport = "PASSPORT"
-    passport = "PASSPORT"

@@ -3,9 +3,9 @@ from logging.config import fileConfig
 from alembic import context
 from sqlalchemy import engine_from_config, pool
 
-from theocraft_coop.root.api_router import router  # noqa: F401
-from theocraft_coop.root.settings import Settings
-from theocraft_coop.root.utils.abstract_base import AbstractBase
+from coop_connect.root.api_router import router  # noqa: F401
+from coop_connect.root.settings import Settings
+from coop_connect.root.utils.abstract_base import AbstractBase
 
 settings = Settings()
 postgres_url = str(settings.postgres_url).split("//")

@@ -14,9 +14,9 @@ class Cooperative(AbstractBase):
     )  # requirements to join the coorporative
     public_listing = Column(Boolean, server_default=str(False))
 
-    created_by = Column(UUID, ForeignKey("cooperative_user.id"), nullable=False)
+    created_by = Column(UUID, ForeignKey("user.id"), nullable=False)
 
-    cooperative_user = relationship("CooperativeUser", back_populates="cooperative")
+    user = relationship("User", back_populates="cooperative")
 
 
 class Member(AbstractBase):

@@ -1,10 +1,10 @@
 from fastapi import APIRouter
 
-from theocraft_coop.routers.auth_route import api_router as auth_router
-from theocraft_coop.routers.misc_route import api_router as misc_router
-from theocraft_coop.routers.coop_auth_route import api_router as coop_auth_router
-from theocraft_coop.routers.coop_member_route import api_router as coop_member_router
-from theocraft_coop.routers.coop_route import api_router as coop_router
+from coop_connect.routers.auth_route import api_router as auth_router
+from coop_connect.routers.misc_route import api_router as misc_router
+from coop_connect.routers.auth_route import api_router as coop_auth_router
+from coop_connect.routers.coop_member_route import api_router as coop_member_router
+from coop_connect.routers.coop_route import api_router as coop_router
 
 router = APIRouter()
 

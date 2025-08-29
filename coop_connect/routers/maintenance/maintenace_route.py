@@ -1,7 +1,7 @@
 from fastapi import APIRouter, status, Body
-import theocraft_coop.services.maintenance_service.auth_maintenance as agent_maintenace_service
-import theocraft_coop.schemas.user_schemas as schemas
-from theocraft_coop.services.service_utils.auth_utils import get_current_user
+import coop_connect.services.maintenance_service.auth_maintenance as agent_maintenace_service
+import coop_connect.schemas.user_schemas as schemas
+from coop_connect.services.service_utils.auth_utils import get_current_user
 
 api_router = APIRouter(prefix="/v1/maintenace", tags=["Maintenance Route"])
 

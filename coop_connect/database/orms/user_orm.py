@@ -4,7 +4,7 @@ from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import relationship
 
-from theocraft_coop.root.utils.abstract_base import AbstractBase
+from coop_connect.root.utils.abstract_base import AbstractBase
 
 
 class User(AbstractBase):

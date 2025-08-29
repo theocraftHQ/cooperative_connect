@@ -2,7 +2,7 @@ from datetime import datetime
 from typing import Optional
 from uuid import UUID
 
-from coop_connect.root.cooperative_enumss import UploadPurpose
+from coop_connect.root.coop_enums import UploadPurpose
 from coop_connect.root.utils.base_schemas import AbstractModel
 
 

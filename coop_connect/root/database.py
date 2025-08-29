@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from theocraft_coop.root.settings import Settings
+from coop_connect.root.settings import Settings
 
 settings = Settings()
 engine = create_async_engine(url=str(settings.postgres_url))

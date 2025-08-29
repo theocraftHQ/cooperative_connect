@@ -1,7 +1,7 @@
 from aiobotocore.config import AioConfig
 from aiobotocore.session import get_session
 
-from theocraft_coop.root.settings import Settings
+from coop_connect.root.settings import Settings
 
 settings = Settings()
 
