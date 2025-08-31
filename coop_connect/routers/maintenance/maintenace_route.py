@@ -1,6 +1,7 @@
-from fastapi import APIRouter, status, Body
-import coop_connect.services.maintenance_service.auth_maintenance as agent_maintenace_service
+from fastapi import APIRouter, Body, status
+
 import coop_connect.schemas.user_schemas as schemas
+import coop_connect.services.maintenance_service.auth_maintenance as agent_maintenace_service
 from coop_connect.services.service_utils.auth_utils import get_current_user
 
 api_router = APIRouter(prefix="/v1/maintenace", tags=["Maintenance Route"])
