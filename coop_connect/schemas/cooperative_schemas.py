@@ -16,12 +16,14 @@ from coop_connect.root.utils.base_schemas import (
     PaginationModel,
     PhoneNumber,
 )
+from coop_connect.schemas.form_schemas import Form, FormResponse
 from coop_connect.schemas.user_schemas import Address
 
 
 class Cooperative(AbstractModel):
     name: str
-    onboarding_requirements: Optional[dict] = None
+    onboarding_requirements: dict
+    meta: dict
     public_listing: bool = False
     bye_laws: Optional[str] = None
 
@@ -54,7 +56,7 @@ class PaginatedCooperativeProfile(AbstractModel):
 class CooperativeUpdate(AbstractModel):
     name: Optional[str] = None
     public_listing: Optional[bool] = None
-    onboarding_requirements: Optional[dict] = None
+    onboarding_requirements: Optional[Form] = None
     meta: Optional[dict] = None
 
 
@@ -75,7 +77,7 @@ class Guarantor(AbstractModel):
 
 class MembershipIn(AbstractModel):
     membership_type: MembershipType = MembershipType.REGULAR
-    emergency_contact: Optional[list[EmergencyContact]] = None
+    emergency_contact: Optional[dict] = {}
     referrer: Optional[UUID] = None
     guarantors: Optional[list[Guarantor]] = None
 
@@ -94,6 +96,7 @@ class MembershipExtended(MembershipIn):
 class MembershipProfile(MembershipExtended):
     id: UUID
     date_joined: Optional[datetime] = None
+    onboarding_response: FormResponse
     shares_owned: int
     total_deposits: int
     credit_score: int
@@ -103,7 +106,7 @@ class MembershipProfile(MembershipExtended):
 
 class MembershipUpdate(AbstractModel):
     date_joined: Optional[datetime] = None
-    status: Optional[MembershipStatus] = None
+    status: Optional[str] = None
     shares_owned: Optional[int] = None
     total_deposits: Optional[int] = None
     credit_score: Optional[int] = None

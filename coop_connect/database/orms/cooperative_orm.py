@@ -67,6 +67,7 @@ class Member(AbstractBase):
     shares_owned = Column(Numeric(1), nullable=False, default=0)
     total_deposits = Column(Numeric(15, 2), nullable=False, default=0)
     credit_score = Column(Integer, nullable=False, default=0)
+    onboarding_response = Column(JSONB, default=False, nullable=False)
     user = relationship("User", foreign_keys=[user_id])
     bio = relationship("UserBio", back_populates="member", foreign_keys=[user_bio])
     cooperative = relationship("Cooperative", foreign_keys=[cooperative_id])
