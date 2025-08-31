@@ -16,10 +16,11 @@ class PermissionsDependency:
     def __init__(self, permissions_classes: list):
         self.permissions_classes = permissions_classes
 
-    def __call__(self, request: Request, current_user: Current_User):
+    async def __call__(self, request: Request, current_user: Current_User):
         # 👆 ensures get_current_user resolves first
         for permission_class in self.permissions_classes:
-            permission_class(request=request)
+            perm = permission_class(request=request)
+            await perm.validate()
 
 
 class UserBasePermission(ABC):
@@ -34,14 +35,16 @@ class UserBasePermission(ABC):
     def has_required_permission(self, request: Request) -> bool: ...
 
     def __init__(self, request: Request):
+        self.request = request
         self.user_role = request.state.user.user_type
 
-        if not self.has_required_permission(request=request):
+    async def validate(self):
+        if not self.has_required_permission(request=self.request):
             raise ConnectPermissionException(message=self.user_role_error_msg)
 
 
 class CoopAdminorSuperAdminOnly(UserBasePermission):
-    def has_required_permission(self, request: Request) -> bool:
+    async def has_required_permission(self, request: Request) -> bool:
         return self.user_role in [UserType.admin, UserType.coop_admin]
 
 
@@ -63,17 +66,27 @@ class CoopBasePermission(ABC):
     ]
 
     @abstractmethod
-    def has_required_permission(self, request: Request) -> bool: ...
+    def has_required_permission(self, request: Request): ...
 
     def __init__(self, request: Request):
+        self.request = request
 
-        self.coop_role, self.coop_member_status = coop_service.get_coop_member_role(
-            user_id=request.state.user.id,
-            coop_id=request.path_params["coop_id"],  # extracted from router path
-        )
+    async def validate(self):
+        await self.set_coop_role_and_status(request=self.request)
 
-        if not self.has_required_permission(request=request):
+        has_perm = self.has_required_permission(request=self.request)
+        if not has_perm:
             raise ConnectPermissionException(message=self.user_role_error_msg)
+
+    async def set_coop_role_and_status(self, request: Request):
+        self.coop_role, self.coop_member_status = (
+            await coop_service.get_coop_member_role(
+                user_id=request.state.user.id,
+                cooperative_id=request.path_params[
+                    "coop_id"
+                ],  # extracted from router path
+            )
+        )
 
     def is_active(self) -> bool:
         if self.coop_member_status in self.edge_status:
@@ -85,7 +98,7 @@ class CoopBasePermission(ABC):
 
 
 class CoopStaffOnly(CoopBasePermission):
-    def has_required_permission(self, request: Request) -> bool:
+    def has_required_permission(self) -> bool:
         return (
             self.coop_role == CooperativeUserRole.STAFF
             and self.coop_member_status not in self.edge_status
@@ -94,26 +107,31 @@ class CoopStaffOnly(CoopBasePermission):
 
 class CoopTresuserOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return self.coop_role == CooperativeUserRole.TREASURER and self.is_active()
 
 
 class CoopSecretaryOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return self.coop_role == CooperativeUserRole.SECRETARY and self.is_active()
 
 
 class CoopPresidentOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return self.coop_role == CooperativeUserRole.PRESIDENT and self.is_active()
 
 
 class CoopAccountantOnly(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return self.coop_role == CooperativeUserRole.ACCOUNTANT and self.is_active()
 
 
 class CoopFinancialPerm(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return (
             self.coop_role
             in [
@@ -127,6 +145,7 @@ class CoopFinancialPerm(CoopBasePermission):
 
 class CoopGeneralPerm(CoopBasePermission):
     def has_required_permission(self, request: Request) -> bool:
+
         return (
             self.coop_role
             in [
@@ -143,6 +162,7 @@ class CoopGeneralPerm(CoopBasePermission):
 class CoopAllRoles(CoopBasePermission):
 
     def has_required_permission(self, request: Request) -> bool:
+
         return (
             self.coop_role
             in [

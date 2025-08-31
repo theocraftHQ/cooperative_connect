@@ -57,6 +57,7 @@ class FileLite(AbstractModel):
 
 
 class UserBioRead(UserBio):
+    id: UUID
     identification_file: Optional[FileLite] = None
     passport_file: Optional[FileLite] = None
     signature_file: Optional[FileLite] = None

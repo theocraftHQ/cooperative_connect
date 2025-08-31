@@ -63,7 +63,7 @@ async def user_mfa_sign_up(phone_number: Optional[schemas.PhoneNumber] = None, e
         except NotFound:
 
             mfa_token = await user_db_handler.create_mfa_token(
-                phone_number=phone_number, code=code
+                phone_number=phone_number, code=code, email=email
             )
             if mfa_token.phone_number:
                 await send_sms(
@@ -177,7 +177,7 @@ async def onboard_user(user_onboard: schemas.UserOnboard):
     except NotFound:
         # user does not exist, create a new user
         sign_up_tokens = await sign_up(
-            user=schemas.User(
+            user_in=schemas.User(
                 first_name=user_onboard.first_name,
                 last_name=user_onboard.last_name,
                 email=user_onboard.email,
@@ -223,7 +223,7 @@ async def login(
         raise ConnectBadRequestException(
             message="email and phone number can not be null"
         )
-    user_profile = await get_user_via_unique(email=email)
+    user_profile = await get_user_via_unique(email=email, phone_number=phone_number)  # type: ignore
     if not auth_utils.verify_password(
         hashed_password=user_profile.password, plain_password=password
     ):

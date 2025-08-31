@@ -192,19 +192,19 @@ async def get_all_members(id: UUID, **kwargs):
 
     if years:
         filter_array.append(extract("year", Member_DB.date_created_utc) == years)
+
     if status:
         filter_array.append(Member_DB.status == schemas.MembershipStatus(status))
 
     async with async_session() as session:
         base_query = (
             select(Member_DB)
-            .where(and_(Member_DB.cooperative_id == id, *filter_array))
-            .offset(offset=offset)
-            .limit(limit=limit)
+            .filter(Member_DB.cooperative_id == id, *filter_array)
+            .limit(limit)
+            .offset(offset)
         )
 
         result = (await session.execute(base_query)).scalars().all()
-
         if not result:
             return schemas.PaginatedMembersResponse()
 

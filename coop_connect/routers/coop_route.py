@@ -26,10 +26,10 @@ api_router = APIRouter(prefix="/coop", tags=["Cooperative Admin & Management"])
     dependencies=[Depends(PermissionsDependency([CoopAdminorSuperAdminOnly]))],
 )
 async def create_cooperative(
-    coop_in: schemas.Cooperative, current_user_profile: Current_User
+    coop_in: schemas.CooperativeIn, current_user_profile: Current_User
 ):
     return await cooperative_service.create_cooperative(
-        coop_in=coop_in, created_by=current_user_profile.id
+        coop_in=coop_in, user=current_user_profile
     )
 
 

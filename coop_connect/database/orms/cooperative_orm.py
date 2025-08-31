@@ -1,5 +1,15 @@
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, Numeric, String
+from sqlalchemy import (
+    ARRAY,
+    Boolean,
+    Column,
+    DateTime,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy.ext.mutable import MutableList
 from sqlalchemy.orm import relationship
 
 from coop_connect.root.utils.abstract_base import AbstractBase
@@ -13,7 +23,7 @@ class Cooperative(AbstractBase):
         JSONB, default=False, nullable=True
     )  # requirements to join the coorporative
     public_listing = Column(Boolean, server_default=str(False))
-
+    bye_laws = Column(String, nullable=True)
     created_by = Column(UUID, ForeignKey("user.id"), nullable=False)
 
     user = relationship("User", back_populates="cooperatives")
@@ -32,13 +42,27 @@ class Member(AbstractBase):
         String, nullable=False
     )  # MEMBERSHIP STATUS ./coop_connect/coop_enums.py
     membership_type = Column(String, nullable=False)
-    emergency_contact = Column(JSONB, default=False, nullable=False)
-    guarrantors = Column(JSONB, default=False, nullable=False)
+    emergency_contact = Column(
+        MutableList.as_mutable(ARRAY(JSONB)), default=False, nullable=False
+    )
+    guarantors = Column(
+        MutableList.as_mutable(ARRAY(JSONB)), default=False, nullable=False
+    )
     referal_code = Column(
         String, nullable=False
     )  # figure out the method for generating code automatically and uniquely
     referrer = Column(
-        UUID, ForeignKey("user.id"), nullable=False
+        UUID, ForeignKey("user.id"), nullable=True
+    )  # Need to create a separate table for referral and referral_code
+    shares_owned = Column(Numeric(1), nullable=False, default=0)
+    total_deposits = Column(Numeric(15, 2), nullable=False, default=0)
+    credit_score = Column(Integer, nullable=False, default=0)
+    user = relationship("User", foreign_keys=[user_id])
+    bio = relationship("UserBio", back_populates="member", foreign_keys=[user_bio])
+    cooperative = relationship("Cooperative", foreign_keys=[cooperative_id])
+    # figure out the method for generating code automatically and uniquely
+    referrer = Column(
+        UUID, ForeignKey("user.id"), nullable=True
     )  # Need to create a separate table for referral and referral_code
     shares_owned = Column(Numeric(1), nullable=False, default=0)
     total_deposits = Column(Numeric(15, 2), nullable=False, default=0)

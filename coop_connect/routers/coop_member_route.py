@@ -32,8 +32,9 @@ async def join_cooperative(
     cooperative: CurrentUnprotectedCooperative,
 ):
     return await cooperative_service.create_coop_member(
-        cooperative_id=coop_id,
+        cooperative=cooperative,
         member_in=membership_in,
+        user=current_user,
     )
 
 

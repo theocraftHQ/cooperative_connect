@@ -9,6 +9,7 @@ from coop_connect.root.connect_exception import (
     ConnectBadRequestException,
     ConnectNotFoundException,
 )
+from coop_connect.schemas.user_schemas import UserProfile
 from coop_connect.services.service_utils.exception_collection import (
     NotFound,
     UpdateError,
@@ -18,30 +19,33 @@ LOGGER = logging.getLogger(__name__)
 
 
 # ------- START OF COOPERATIVE MANAGEMENT -------
-async def create_cooperative(coop_in: schemas.CooperativeIn, created_by: UUID):
+async def create_cooperative(coop_in: schemas.CooperativeIn, user: UserProfile):
 
     coop_name = coop_in.name.upper()[0:4]
-    coop_id = f"COOP-{coop_name}-{str(uuid4()).random(length=10)}"
+    coop_id = f"COOP-{coop_name}-{str(uuid4()).replace('-', '')[:10]}"
     try:
 
         cooperative = await cooperative_db_handler.create_cooperative(
             cooperative_in=schemas.CooperativeExtended(
                 **coop_in.model_dump(exclude="creator_role"),
                 coop_id=coop_id,
-                created_by=created_by,
+                created_by=user.id,
+                status=schemas.CooperativeStatus.INACTIVE,
             )
         )
 
         # create root_coop member
-        membership_id = f"{coop_name}-{date.today().year}-001"
-
+        membership_id = f"{coop_name}-{date.today().year}-1"
+        referal_code = f"{date.today().year}-1-{str(uuid4()).replace('-', '')[:6]}"
         await cooperative_db_handler.create_coop_member(
             member=schemas.MembershipExtended(
                 membership_id=membership_id,
                 cooperative_id=cooperative.id,
-                user_id=created_by,
+                user_id=user.id,
+                user_bio=user.bio.id,
                 status=schemas.MembershipStatus.ACTIVE,
                 role=coop_in.creator_role,
+                referal_code=referal_code,
             ),
         )
 
@@ -127,14 +131,18 @@ async def update_cooperative(
 
 
 async def create_coop_member(
-    member_in: schemas.MembershipIn, cooperative: schemas.CooperativeProfile
+    member_in: schemas.MembershipIn,
+    cooperative: schemas.CooperativeProfile,
+    user: UserProfile,
 ):
+    if user.bio is None:
+        raise ConnectBadRequestException(message="User profile not complete")
 
     try:
         # THEO-2025-001 [NAME OF COOP, YEAR JOINED, NUMBER IN THE YEAR]
 
         await _get_coop_member_via_user_id(
-            user_id=member_in.user_id, cooperative_id=cooperative.id
+            user_id=user.id, cooperative_id=cooperative.id
         )
 
         raise ConnectBadRequestException(
@@ -147,15 +155,21 @@ async def create_coop_member(
         all_members = await get_all_coop_members(
             cooperative_id=cooperative.id, year=date.today().year
         )
-
+        print(all_members)
         # create root_coop member
         membership_id = f"{coop_name}-{date.today().year}-{all_members.total_count+1}"
+        referal_code = f"{date.today().year}-{all_members.total_count+1}-{str(uuid4()).replace('-', '')[:6]}"
 
         return await cooperative_db_handler.create_coop_member(
             member=schemas.MembershipExtended(
                 **member_in.model_dump(),
                 membership_id=membership_id,
                 cooperative_id=cooperative.id,
+                user_id=user.id,
+                user_bio=user.bio.id,
+                referal_code=referal_code,
+                status=schemas.MembershipStatus.PENDING_APPROVAL,
+                role=schemas.CooperativeUserRole.MEMBER,
             ),
         )
 
@@ -196,14 +210,21 @@ async def get_coop_member(member_id: UUID, cooperative_id: UUID):
 async def get_all_coop_members(
     cooperative_id: UUID,
     status: Optional[schemas.MembershipStatus] = None,
-    offset: int = 1,
+    offset: int = 0,
     limit: int = 20,
+    search: Optional[str] = None,
     year: Optional[schemas.Years] = None,
 ) -> schemas.PaginatedMembersResponse:
 
     return await cooperative_db_handler.get_all_members(
         id=cooperative_id,
-        **{"status": status, "offset": offset, "limit": limit, "year": year},
+        **{
+            "status": status,
+            "offset": offset,
+            "limit": limit,
+            "years": year,
+            "search": search,
+        },
     )
 
 
