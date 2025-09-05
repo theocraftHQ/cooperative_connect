@@ -22,7 +22,8 @@ class Settings(AbstractSettings):
     aws_secret_key: str
     aws_bucket: str
     aws_region_name: str
-    app_name: str = "Theocraft Coop"
+    app_name: str = "Coopconnnect"
+    payaza_public_token: str
 
 
 settings = Settings()

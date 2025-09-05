@@ -1,0 +1,12 @@
+echo -n "string-to-encode" | base64
+
+# class ReservedBankAccount(AbstractBase):
+    # user_id
+    # account_name
+    # account_number
+    # bank_name
+    # bank_code
+    # reference
+    # status
+    # currency_code
+    # disabled_at

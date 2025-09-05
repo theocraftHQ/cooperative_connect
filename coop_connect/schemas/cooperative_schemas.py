@@ -22,6 +22,7 @@ from coop_connect.schemas.user_schemas import Address
 
 class Cooperative(AbstractModel):
     name: str
+    acronym: str
     onboarding_requirements: dict
     meta: dict
     public_listing: bool = False
