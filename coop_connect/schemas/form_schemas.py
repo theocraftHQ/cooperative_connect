@@ -1,17 +1,18 @@
 from typing import List, Optional
-from pydantic import BaseModel, Field
+from pydantic import Field
+from coop_connect.root.utils.base_schemas import AbstractModel
 from datetime import datetime
 from coop_connect.root.coop_enums import QuestionType
 import uuid
 
 
-class Choice(BaseModel):
+class Choice(AbstractModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     label: str
     value: Optional[str] = None  # can be used as "machine value"
 
 
-class Question(BaseModel):
+class Question(AbstractModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     text: str
     description: Optional[str] = None
@@ -31,7 +32,7 @@ class Question(BaseModel):
     max_files: Optional[int] = None
 
 
-class Form(BaseModel):
+class Form(AbstractModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     title: str
     description: Optional[str] = None
@@ -43,7 +44,7 @@ class Form(BaseModel):
 
 # Response Models
 
-class Answer(BaseModel):
+class Answer(AbstractModel):
     question_id: str
 
     # Generic answers
@@ -60,7 +61,7 @@ class Answer(BaseModel):
     files: Optional[List[str]] = None
 
 
-class FormResponse(BaseModel):
+class FormResponse(AbstractModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     form_id: str
     user_id: uuid.UUID

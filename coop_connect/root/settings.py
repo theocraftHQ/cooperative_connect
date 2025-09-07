@@ -24,6 +24,6 @@ class Settings(AbstractSettings):
     aws_region_name: str
     app_name: str = "Coopconnnect"
     payaza_public_token: str
-
+    payaza_secret_key: str
 
 settings = Settings()

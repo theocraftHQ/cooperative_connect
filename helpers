@@ -1,12 +1,24 @@
 echo -n "string-to-encode" | base64
 
-# class ReservedBankAccount(AbstractBase):
-    # user_id
-    # account_name
-    # account_number
-    # bank_name
-    # bank_code
-    # reference
-    # status
-    # currency_code
-    # disabled_at
+# MAKE PAYMENT
+  import http.client
+  import json
+
+  conn = http.client.HTTPSConnection("api.payaza.africa")
+  payload = json.dumps({
+    "account_name": "Payaza(Theocraft/Lawrence okegbemi)",
+    "account_number": "3010017372",
+    "initiation_transaction_reference": "Ref1234567hd890",
+    "transaction_amount": "900000",
+    "currency": "NGN",
+    "source_account_number": "4362636463",
+    "source_account_name": "Lawrence",
+    "source_bank_name": "UBA"
+  })
+  headers = {
+    'Content-Type': 'application/json'
+  }
+  conn.request("POST", "/live/merchant-collection/payaza/virtual_account/fund_test_virtual_account", payload, headers)
+  res = conn.getresponse()
+  data = res.read()
+  print(data.decode("utf-8"))

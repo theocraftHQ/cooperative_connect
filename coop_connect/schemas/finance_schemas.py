@@ -40,9 +40,9 @@ class BankAccount(AbstractModel):
     account_number: str
     bank_code: str
     bank_name: str
-    currency_code: str
+    currency_code: str = "NGN"
     provider: str
-    reference: str
+    account_reference: str
     meta: dict
 
 class BankAccountUpdate(AbstractModel):

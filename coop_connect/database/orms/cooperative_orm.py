@@ -92,7 +92,7 @@ class ReservedBankAccount(AbstractBase):
     bank_name = Column(String, nullable=False)
     currency_code = Column(String, nullable=False) 
     provider = Column(String, nullable=False) 
-    reference = Column(String, nullable=False) 
+    account_reference = Column(String, nullable=False) 
     status = Column(String, default="ACTIVE", nullable=False) 
     user = relationship("User", foreign_keys=[user_id])
     cooperative = relationship("Cooperative", foreign_keys=[cooperative_id])

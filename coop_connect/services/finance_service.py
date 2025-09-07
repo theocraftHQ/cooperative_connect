@@ -16,7 +16,7 @@ from coop_connect.services.service_utils.exception_collection import (
     UpdateError,
 )
 
-from coop_connect.listeners import payaza
+from coop_connect.services import payaza_service
 
 LOGGER = logging.getLogger(__name__)
 
@@ -87,7 +87,7 @@ async def create_member_bank_account(
     except NotFound:
         account_reference = f"ref_{cooperative.acronym}_{user.id}"
         if provider == "PAYAZA":
-            from_provider_deatils = payaza.create_reserved_bank_account(
+            from_provider_deatils = payaza_service.create_reserved_bank_account(
                 account_reference,
                 cooperative,
                 user
@@ -103,9 +103,24 @@ async def create_member_bank_account(
         return await finance_db_handler.create_bank_account(
             bank_details=schemas.BankAccount(
                 **from_provider_deatils.data,
+                provider=provider,
                 user_id=user.id,
                 cooperative_id=cooperative.id,
                 meta=from_provider_deatils.model_dump_json()
             )
         )
     
+
+async def payaza_collect_payment(
+        wallet_update: schemas.WalletUpdate,
+        cooperative: cooperative_schemas.CooperativeProfile,
+        user: UserProfile
+    ):
+    # if wallet_update.is_active is None:
+
+    wallet= await _get_member_wallet(
+            user_id=user.id, cooperative_id=cooperative.id
+        )
+    return await finance_db_handler.update_wallet(
+        wallet_details=wallet_update, wallet_id=wallet.id
+    )
