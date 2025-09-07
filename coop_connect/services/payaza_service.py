@@ -152,6 +152,18 @@ async def process_payaza_request(request: Request):
       LOGGER.error(f"Unexpected error processing webhook: {str(e)}")
       raise ConnectBadRequestException(messgae=f"Unexpected error processing webhook: {str(e)}")
 
+
+async def process_payaza_deposit():
+    # call the deposit service from finance here
+    pass
+
+async def process_payaza_payment(message):
+    # The idea is that this function will route processing to the difference function to handle deposit, tranfer or any other thing
+    if message['event_type'] == 'payment.successful':
+        await process_payaza_deposit(message)
+    else:
+        LOGGER.warning(f"Unknown event type: {message['event_type']}")
+
 if __name__ == "__main__":
 #  resp = create_reserved_bank_account()
     pass
