@@ -35,11 +35,11 @@ async def user_sign_up(
     status_code=status.HTTP_201_CREATED,
 )
 async def sign_up(
-    user_in: schemas.UserOnboard, user_type: UserType = UserType.coop_member
+    user_in: schemas.UserOnboard, user_type: UserType = UserType.COOP_MEMBER
 ):
 
     user_in.user_type = user_type
-    if user_in.user_type == UserType.coop_admin:
+    if user_in.user_type == UserType.COOP_ADMIN:
         return await user_service.onboard_user(user_onboard=user_in)
 
     return await user_service.sign_up(
@@ -52,15 +52,11 @@ async def sign_up(
     response_model=schemas.UserAccessToken,
     status_code=status.HTTP_201_CREATED,
 )
-async def admin_sign_up(user_in: schemas.UserOnboard):
+async def admin_sign_up(user_in: schemas.User):
 
-    user_in.user_type = UserType.admin
-    if user_in.user_type == UserType.coop_admin:
-        return await user_service.onboard_user(user_onboard=user_in)
+    user_in.user_type = UserType.ADMIN
 
-    return await user_service.sign_up(
-        user_in=schemas.User(**user_in.model_dump(exclude="user_bio"))
-    )
+    return await user_service.sign_up(user_in=user_in)
 
 
 @api_router.post(

@@ -1,9 +1,11 @@
-from typing import List, Optional
-from pydantic import Field
-from coop_connect.root.utils.base_schemas import AbstractModel
-from datetime import datetime
-from coop_connect.root.coop_enums import QuestionType
 import uuid
+from datetime import datetime
+from typing import List, Optional
+
+from pydantic import Field
+
+from coop_connect.root.coop_enums import QuestionType
+from coop_connect.root.utils.base_schemas import AbstractModel
 
 
 class Choice(AbstractModel):
@@ -44,17 +46,18 @@ class Form(AbstractModel):
 
 # Response Models
 
+
 class Answer(AbstractModel):
     question_id: str
 
     # Generic answers
     text: Optional[str] = None
     number: Optional[float] = None
-    date: Optional[str] = None   # ISO YYYY-MM-DD
-    time: Optional[str] = None   # HH:MM
+    date: Optional[str] = None  # ISO YYYY-MM-DD
+    time: Optional[str] = None  # HH:MM
 
     # Choice answers
-    choice_id: Optional[str] = None        # for SINGLE_CHOICE or DROPDOWN
+    choice_id: Optional[str] = None  # for SINGLE_CHOICE or DROPDOWN
     choice_ids: Optional[List[str]] = None  # for MULTIPLE_CHOICE
 
     # File upload answers (list of uploaded file URLs/paths)
@@ -64,6 +67,5 @@ class Answer(AbstractModel):
 class FormResponse(AbstractModel):
     id: str = Field(default_factory=lambda: str(uuid.uuid4()))
     form_id: str
-    user_id: uuid.UUID
     submitted_at: datetime = Field(default_factory=datetime.utcnow)
     answers: List[Answer]

@@ -223,20 +223,23 @@ async def login(
         raise ConnectBadRequestException(
             message="email and phone number can not be null"
         )
-    user_profile = await get_user_via_unique(email=email, phone_number=phone_number)  # type: ignore
-    if not auth_utils.verify_password(
-        hashed_password=user_profile.password, plain_password=password
-    ):
-        raise ConnectAuthException(message="email or password is incorrect")
+    try:
+        user_profile = await get_user_via_unique(email=email, phone_number=phone_number)  # type: ignore
+        if not auth_utils.verify_password(
+            hashed_password=user_profile.password, plain_password=password
+        ):
+            raise ConnectAuthException(message="email or password is incorrect")
 
-    payload_dict = {"id": str(user_profile.id)}
-    access_token, refresh_token = dep.create_access_token(
-        data=payload_dict
-    ), dep.create_refresh_token(data=payload_dict)
+        payload_dict = {"id": str(user_profile.id)}
+        access_token, refresh_token = dep.create_access_token(
+            data=payload_dict
+        ), dep.create_refresh_token(data=payload_dict)
 
-    return schemas.UserAccessToken(
-        access_token=access_token, refresh_token=refresh_token
-    )
+        return schemas.UserAccessToken(
+            access_token=access_token, refresh_token=refresh_token
+        )
+    except NotFound:
+        raise ConnectAuthException(message="no account found")
 
 
 async def update_user_bio(user_bio: schemas.UserBio, user_read: schemas.UserProfile):

@@ -2,7 +2,7 @@ from datetime import date, datetime
 from typing import Annotated, List, Optional
 from uuid import UUID
 
-from pydantic import AnyHttpUrl, EmailStr, Field, conint
+from pydantic import AnyHttpUrl, EmailStr, Field, conint, constr
 
 from coop_connect.root.coop_enums import (
     CooperativeStatus,
@@ -22,9 +22,8 @@ from coop_connect.schemas.user_schemas import Address
 
 class Cooperative(AbstractModel):
     name: str
-    acronym: str
-    onboarding_requirements: dict
-    meta: dict
+    acronym: constr(min_length=6)
+    onboarding_requirements: Optional[List[Form]] = None
     public_listing: bool = False
     bye_laws: Optional[str] = None
 
@@ -78,9 +77,10 @@ class Guarantor(AbstractModel):
 
 class MembershipIn(AbstractModel):
     membership_type: MembershipType = MembershipType.REGULAR
-    emergency_contact: Optional[dict] = {}
+    emergency_contact: Optional[list[Guarantor]] = None
     referrer: Optional[UUID] = None
     guarantors: Optional[list[Guarantor]] = None
+    onboarding_response: Optional[FormResponse] = None
 
 
 class MembershipExtended(MembershipIn):
@@ -89,7 +89,7 @@ class MembershipExtended(MembershipIn):
     user_id: UUID
     status: MembershipStatus = MembershipStatus.PENDING_APPROVAL
     cooperative_id: UUID
-    referal_code: str
+    referal_code: Optional[str] = None
     meta: Optional[dict] = None
     role: CooperativeUserRole
 
@@ -97,17 +97,17 @@ class MembershipExtended(MembershipIn):
 class MembershipProfile(MembershipExtended):
     id: UUID
     date_joined: Optional[datetime] = None
-    onboarding_response: FormResponse
     shares_owned: int
     total_deposits: int
     credit_score: int
     date_created_utc: datetime
     date_updated_utc: Optional[datetime] = None
+    cooperative: Optional[CooperativeProfile] = None
 
 
 class MembershipUpdate(AbstractModel):
     date_joined: Optional[datetime] = None
-    status: Optional[str] = None
+    status: Optional[MembershipStatus] = None
     shares_owned: Optional[int] = None
     total_deposits: Optional[int] = None
     credit_score: Optional[int] = None
@@ -116,6 +116,11 @@ class MembershipUpdate(AbstractModel):
     referrer: Optional[UUID] = None
     guarantors: Optional[list[Guarantor]] = None
     meta: Optional[dict] = None
+
+
+class MembershipExtendedUpdate(MembershipUpdate):
+    membership_id: Optional[str] = None
+    referal_code: Optional[str] = None
 
 
 class PaginatedMembersResponse(AbstractModel):

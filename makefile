@@ -36,9 +36,11 @@ local-head:
 	alembic -c local_dev_alembic.ini heads
 
 member_server:
-	uvicorn coop_connect.root.app:app --reload --port=8000
+	uvicorn coop_connect.root.app:app --reload --port=8002
 coop_server:
 	uvicorn coop_connect.root.app:app --reload --port=8001
+admin_server:
+	uvicorn coop_connect.root.app:app --reload --port=8003
 
 format : 
 	$(BLACK) --preview ./project_name

@@ -13,7 +13,7 @@ import coop_connect.services.user_service as admin_service
 from coop_connect.database.orms.user_orm import User
 from coop_connect.root.settings import Settings
 from coop_connect.schemas.cooperative_schemas import CooperativeProfile
-from coop_connect.schemas.user_schemas import TokenData
+from coop_connect.schemas.user_schemas import TokenData, UserProfile
 
 LOGGER = logging.getLogger(__name__)
 
@@ -159,5 +159,11 @@ async def get_cooperative(coop_id: UUID):
     return await cooperative_service.get_cooperative(id=coop_id)
 
 
-Current_User = Annotated[User, Depends(get_current_user)]
+async def get_cooperative_via_acronym(acronym: str):
+
+    return await cooperative_service.get_cooperative_via_acronym(acronym=acronym)
+
+
+Current_User = Annotated[UserProfile, Depends(get_current_user)]
 CurrentUnprotectedCooperative = Annotated[CooperativeProfile, Depends(get_cooperative)]
+CurrentCooperative = Annotated[CooperativeProfile, Depends(get_cooperative_via_acronym)]

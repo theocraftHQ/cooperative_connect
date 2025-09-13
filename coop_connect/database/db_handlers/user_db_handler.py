@@ -230,6 +230,7 @@ async def create_user_bio(user_bio: schemas.UserBio, user_id: UUID):
             )
 
         await session.commit()
+        print(result.as_dict())
         return schemas.UserBio(**result.as_dict())
 
 

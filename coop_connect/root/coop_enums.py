@@ -9,57 +9,63 @@ class StrEnum(str, Enum):
 
 
 class CooperativeStatus(StrEnum):
-    ACTIVE = "active"
-    INACTIVE = "inactive"  # They need to contact us or subscribe
-    DEACTIVATED = "deactivated"  # They no longer want to be with us
+    ACTIVE = "Active"
+    INACTIVE = "Inactive"  # They need to contact us or subscribe
+    DEACTIVATED = "Deactivated"  # They no longer want to be with us
 
 
 class CooperativeUserRole(StrEnum):
-    PRESIDENT = "president"
-    SECRETARY = "secretary"
-    TREASURER = "treasurer"
-    ACCOUNTANT = "accountant"
-    STAFF = "staff"
-    MEMBER = "member"
+    PRESIDENT = "President"
+    SECRETARY = "Secretary"
+    TREASURER = "Treasurer"
+    ACCOUNTANT = "Accountant"
+    STAFF = "Staff"
+    MEMBER = "Member"
 
 
 class MembershipStatus(StrEnum):
-    PENDING_APPROVAL = "pending_approval"
-    ACTIVE = "active"
-    INACTIVE = "inactive"
-    SUSPENDED = "suspended"
-    TERMINATED = "terminated"
+    PENDING_APPROVAL = "Pending_approval"
+    ACTIVE = "Active"
+    INACTIVE = "Inactive"
+    SUSPENDED = "Suspended"
+    TERMINATED = "Terminated"
 
 
 class MembershipType(StrEnum):
-    REGULAR = "regular"
-    CORPORATE = "corporate"
+    REGULAR = "Regular"
+    CORPORATE = "Corporate"
 
 
 class UserType(StrEnum):
-    coop_admin = "Cooperative Admin"
-    coop_member = "Cooperative Member"
-    admin = "Admin"
+    COOP_ADMIN = "Cooperative Admin"
+    COOP_MEMBER = "Cooperative Member"
+    ADMIN = "Admin"
 
 
 class Gender(StrEnum):
-    male = "Male"
-    female = "Female"
-    other = "Other"
+    MALE = "Male"
+    FEMALE = "Female"
+    OTHER = "Other"
 
 
 class UploadPurpose(StrEnum):
-    signature = "SIGNATURE"
-    passport = "PASSPORT"
+    SIGNATURE = "Signature"
+    PASSPORT = "Passport"
 
 
 class QuestionType(StrEnum):
-    SHORT_TEXT = "short_text"
-    LONG_TEXT = "long_text"
-    SINGLE_CHOICE = "single_choice"
-    MULTIPLE_CHOICE = "multiple_choice"
-    DROPDOWN = "dropdown"
-    DATE = "date"
-    TIME = "time"
-    NUMBER = "number"
-    FILE_UPLOAD = "file_upload"
+    SHORT_TEXT = "Short_Text"
+    LONG_TEXT = "Long_Text"
+    SINGLE_CHOICE = "Single_Choice"
+    MULTIPLE_CHOICE = "Multiple_Choice"
+    DROPDOWN = "Dropdown"
+    DATE = "Date"
+    TIME = "Time"
+    NUMBER = "Number"
+    FILE_UPLOAD = "File_Upload"
+
+
+class Environment(StrEnum):
+    DEVELOPMENT = "DEVELOPMENT"
+    STAGING = "STAGING"
+    PRODUCTION = "PRODUCTION"
