@@ -19,6 +19,18 @@ from coop_connect.root.permission import (
 api_router = APIRouter(prefix="/coop", tags=["Cooperative Admin & Management"])
 
 
+@api_router.get(
+    "/",
+    response_model=list[schemas.CooperativeProfile],
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(PermissionsDependency([CoopAdminorSuperAdminOnly]))],
+)
+async def get_cooperatives_via_acronym(
+    acronym: str, current_user_profile: Current_User
+):
+    return await cooperative_service.get_cooperatives_via_acronym(acronym=acronym)
+
+
 @api_router.post(
     "/",
     response_model=schemas.CooperativeProfile,

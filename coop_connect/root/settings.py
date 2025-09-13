@@ -1,5 +1,7 @@
 from pydantic import EmailStr
-from pydantic.networks import PostgresDsn
+from pydantic.networks import AmqpDsn, PostgresDsn
+
+from coop_connect.root.coop_enums import Environment
 
 from .utils.base_schemas import AbstractSettings
 
@@ -25,5 +27,8 @@ class Settings(AbstractSettings):
     app_name: str = "Coopconnnect"
     payaza_public_token: str
     payaza_secret_key: str
+    cloud_ampq_url: AmqpDsn
+    environment: Environment = Environment.DEVELOPMENT
+
 
 settings = Settings()

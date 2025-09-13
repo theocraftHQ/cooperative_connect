@@ -4,11 +4,11 @@ Management of membership profile and
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, status
+from fastapi import APIRouter, Depends, Query, status
 
 import coop_connect.schemas.cooperative_schemas as schemas
 import coop_connect.services.cooperative_service as cooperative_service
-from coop_connect.root.dependencies import Current_User, CurrentUnprotectedCooperative
+from coop_connect.root.dependencies import Current_User, CurrentCooperative
 from coop_connect.root.permission import (
     CoopAllRoles,
     CoopGeneralPerm,
@@ -19,18 +19,21 @@ api_router = APIRouter(
     prefix="/coop/{coop_id}/members", tags=["Cooperative Membership Management"]
 )
 
+join_api_router = APIRouter(prefix="/coop", tags=["Join Membership"])
 
-@api_router.post(
-    "/",
+
+@join_api_router.post(
+    "/join-member",
     response_model=schemas.MembershipProfile,
     status_code=status.HTTP_200_OK,
 )
 async def join_cooperative(
-    coop_id: UUID,
     membership_in: schemas.MembershipIn,
     current_user: Current_User,
-    cooperative: CurrentUnprotectedCooperative,
+    cooperative: CurrentCooperative,
+    acronym: str = Query(default=None),
 ):
+
     return await cooperative_service.create_coop_member(
         cooperative=cooperative,
         member_in=membership_in,

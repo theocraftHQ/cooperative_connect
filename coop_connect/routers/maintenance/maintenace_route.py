@@ -1,17 +1,29 @@
-from fastapi import APIRouter, Body, status
+from fastapi import APIRouter, Depends, status
 
-import coop_connect.schemas.user_schemas as schemas
-import coop_connect.services.maintenance_service.auth_maintenance as agent_maintenace_service
-from coop_connect.services.service_utils.auth_utils import get_current_user
+from coop_connect.root.permission import CoopSuperAdminOnly, PermissionsDependency
+from coop_connect.services.maintenance_service import (
+    delete_cooperative,
+    delete_non_admin_users,
+)
 
 api_router = APIRouter(prefix="/v1/maintenace", tags=["Maintenance Route"])
 
 
 @api_router.post(
-    "/invite",
+    "/clear-cooperative-db",
     status_code=status.HTTP_200_OK,
+    dependencies=[Depends(PermissionsDependency([CoopSuperAdminOnly]))],
 )
-async def invite_agent(
-    email: schemas.EmailStr = Body(embed=True),
-):
-    return await agent_maintenace_service.invite_agent(email=email)
+async def clear_cooperatives():
+    await delete_cooperative()
+    return
+
+
+@api_router.post(
+    "/clear-user-db",
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(PermissionsDependency([CoopSuperAdminOnly]))],
+)
+async def clear_users():
+    await delete_non_admin_users()
+    return

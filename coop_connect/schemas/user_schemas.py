@@ -30,7 +30,7 @@ class Login(Password):
 class User(Login):
     first_name: str
     last_name: str
-    user_type: UserType = UserType.coop_member
+    user_type: UserType = UserType.COOP_MEMBER
 
 
 class Address(AbstractModel):

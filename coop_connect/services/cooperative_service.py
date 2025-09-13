@@ -9,6 +9,7 @@ from coop_connect.root.connect_exception import (
     ConnectBadRequestException,
     ConnectNotFoundException,
 )
+from coop_connect.root.coop_enums import MembershipStatus
 from coop_connect.schemas.user_schemas import UserProfile
 from coop_connect.services.service_utils.exception_collection import (
     NotFound,
@@ -19,48 +20,75 @@ LOGGER = logging.getLogger(__name__)
 
 
 # ------- START OF COOPERATIVE MANAGEMENT -------
+
+
+async def get_cooperatives_via_acronym(acronym: str):
+    return cooperative_db_handler.get_cooperatives_via_acronym(acronym=acronym)
+
+
 async def create_cooperative(coop_in: schemas.CooperativeIn, user: UserProfile):
 
-    coop_name = coop_in.name.upper()[0:4]
-    coop_id = f"COOP-{coop_name}-{str(uuid4()).replace('-', '')[:10]}"
+    coop_name = f"{coop_in.acronym.upper()[0:4]}{coop_in.acronym.upper()[4:6]}"
+    coop_id = f"COOP-{coop_name.replace(' ','-')}-{str(uuid4()).replace('-', '')[:10]}"
     try:
+        await cooperative_db_handler.get_cooperative_via_accronym(
+            acronym=coop_in.acronym
+        )
+        raise ConnectBadRequestException("acroynm is not unique")
+    except NotFound:
 
-        cooperative = await cooperative_db_handler.create_cooperative(
-            cooperative_in=schemas.CooperativeExtended(
-                **coop_in.model_dump(exclude="creator_role"),
-                coop_id=coop_id,
-                created_by=user.id,
-                status=schemas.CooperativeStatus.INACTIVE,
+        try:
+
+            cooperative = await cooperative_db_handler.create_cooperative(
+                cooperative_in=schemas.CooperativeExtended(
+                    **coop_in.model_dump(exclude="creator_role"),
+                    coop_id=coop_id,
+                    created_by=user.id,
+                    status=schemas.CooperativeStatus.INACTIVE,
+                )
             )
-        )
 
-        # create root_coop member
-        membership_id = f"{coop_name}-{date.today().year}-1"
-        referal_code = f"{date.today().year}-1-{str(uuid4()).replace('-', '')[:6]}"
-        await cooperative_db_handler.create_coop_member(
-            member=schemas.MembershipExtended(
-                membership_id=membership_id,
-                cooperative_id=cooperative.id,
-                user_id=user.id,
-                user_bio=user.bio.id,
-                status=schemas.MembershipStatus.ACTIVE,
-                role=coop_in.creator_role,
-                referal_code=referal_code,
-            ),
-        )
+            # create root_coop member
+            membership_id = f"{coop_name}-{date.today().year}-1"
+            referal_code = f"{date.today().year}-1-{str(uuid4()).replace('-', '')[:6]}"
 
-        return cooperative
+            await cooperative_db_handler.create_coop_member(
+                member=schemas.MembershipExtended(
+                    membership_id=membership_id,
+                    cooperative_id=cooperative.id,
+                    onboarding_response=None,
+                    user_id=user.id,
+                    user_bio=user.bio.id,
+                    status=schemas.MembershipStatus.ACTIVE,
+                    role=coop_in.creator_role,
+                    referal_code=referal_code,
+                ),
+            )
 
-    except Exception as e:
-        LOGGER.exception(e)
-        LOGGER.error("cooperative failed to create")
+            return cooperative
 
-        raise ConnectBadRequestException(message="cooperative failed to create")
+        except Exception as e:
+            LOGGER.exception(e)
+            LOGGER.error("cooperative failed to create")
+
+            raise ConnectBadRequestException(message="cooperative failed to create")
 
 
 async def get_cooperatives(**kwargs):
 
     return await cooperative_db_handler.get_cooperatives(**kwargs)
+
+
+async def get_cooperative_via_acronym(acronym: str):
+
+    try:
+        return await cooperative_db_handler.get_cooperative_via_accronym(
+            acronym=acronym
+        )
+    except NotFound as e:
+        LOGGER.exception(e)
+        LOGGER.error("Cooperative not found")
+        raise ConnectNotFoundException(message="cooperative not found")
 
 
 async def get_cooperative(id: UUID):
@@ -150,24 +178,15 @@ async def create_coop_member(
         )
 
     except NotFound:
-        coop_name = cooperative.name.upper()[0:4]
-
-        all_members = await get_all_coop_members(
-            cooperative_id=cooperative.id, year=date.today().year
-        )
-        print(all_members)
-        # create root_coop member
-        membership_id = f"{coop_name}-{date.today().year}-{all_members.total_count+1}"
-        referal_code = f"{date.today().year}-{all_members.total_count+1}-{str(uuid4()).replace('-', '')[:6]}"
 
         return await cooperative_db_handler.create_coop_member(
             member=schemas.MembershipExtended(
                 **member_in.model_dump(),
-                membership_id=membership_id,
+                membership_id=None,
                 cooperative_id=cooperative.id,
                 user_id=user.id,
                 user_bio=user.bio.id,
-                referal_code=referal_code,
+                referal_code=None,
                 status=schemas.MembershipStatus.PENDING_APPROVAL,
                 role=schemas.CooperativeUserRole.MEMBER,
             ),
@@ -232,13 +251,36 @@ async def update_coop_membership(
     cooperative_id: UUID, member_id: UUID, member_update: schemas.MembershipUpdate
 ):
     try:
-        await get_coop_member(member_id=member_id, cooperative_id=cooperative_id)
+        cooperative_member_profile = await get_coop_member(
+            member_id=member_id, cooperative_id=cooperative_id
+        )
+
+        member_update = schemas.MembershipExtendedUpdate(
+            **member_update.model_dump(),
+            membership_id=None,
+            referal_code=None,
+        )
+
+        if member_update.status == MembershipStatus.ACTIVE:
+            coop_name = cooperative_member_profile.cooperative.acronym.upper()[0:4]
+
+            all_members = await get_all_coop_members(
+                cooperative_id=cooperative_id, year=date.today().year
+            )
+            # create root_coop member
+            member_update.membership_id = (
+                f"{coop_name}-{date.today().year}-{all_members.total_count+1}"
+            )
+
+            member_update.referal_code = f"{date.today().year}-{all_members.total_count+1}-{str(uuid4()).replace('-', '')[:6]}"
+
         coop_member_update = await cooperative_db_handler.update_coop_membership(
             coop_member_update=member_update,
             coop_member_id=member_id,
             coop_id=cooperative_id,
         )
         return coop_member_update
+
     except UpdateError as e:
         LOGGER.exception(e)
         LOGGER.error("Unexplainable cooperative member profile update error")

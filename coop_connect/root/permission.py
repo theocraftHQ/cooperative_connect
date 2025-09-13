@@ -43,9 +43,14 @@ class UserBasePermission(ABC):
             raise ConnectPermissionException(message=self.user_role_error_msg)
 
 
+class CoopSuperAdminOnly(UserBasePermission):
+    def has_required_permission(self, request: Request) -> bool:
+        return self.user_role in [UserType.ADMIN]
+
+
 class CoopAdminorSuperAdminOnly(UserBasePermission):
-    async def has_required_permission(self, request: Request) -> bool:
-        return self.user_role in [UserType.admin, UserType.coop_admin]
+    def has_required_permission(self, request: Request) -> bool:
+        return self.user_role in [UserType.ADMIN, UserType.COOP_ADMIN]
 
 
 class CoopBasePermission(ABC):

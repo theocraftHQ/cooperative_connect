@@ -45,6 +45,34 @@ async def create_cooperative(
         return schemas.CooperativeProfile(**result.as_dict())
 
 
+async def get_cooperative_via_accronym(acronym: str):  # user_id: UUID
+    async with async_session() as session:
+        result = (
+            await session.execute(
+                select(Cooperative_DB).filter(Cooperative_DB.acronym == acronym)
+            )
+        ).scalar_one_or_none()
+        if not result:
+            raise NotFound
+        return schemas.CooperativeProfile(**result.as_dict())
+
+
+async def get_cooperatives_via_acronym(acronym: str):
+
+    async with async_session() as session:
+        result = (
+            (
+                await session.execute(
+                    select(Cooperative_DB).filter(Cooperative_DB.acronym == acronym)
+                )
+            )
+            .scalars()
+            .all()
+        )
+
+        return [schemas.CooperativeProfile(**x.as_dict()) for x in result]
+
+
 async def get_cooperative(id: UUID):  # user_id: UUID
     async with async_session() as session:
         result = (
@@ -171,14 +199,18 @@ async def get_coop_member(id: UUID, cooperative_id: UUID):
     async with async_session() as session:
         result = (
             await session.execute(
-                select(Member_DB).where(
+                select(Member_DB)
+                .options(joinedload(Member_DB.cooperative))
+                .filter(
                     and_(Member_DB.id == id, Member_DB.cooperative_id == cooperative_id)
                 )
             )
         ).scalar_one_or_none()
         if not result:
             raise NotFound
-        return schemas.MembershipProfile(**result.as_dict())
+        return schemas.MembershipProfile(
+            **result.as_dict(), cooperative=result.cooperative
+        )
 
 
 async def get_all_members(id: UUID, **kwargs):
@@ -225,7 +257,9 @@ async def get_all_members(id: UUID, **kwargs):
 
 
 async def update_coop_membership(
-    coop_member_update: schemas.MembershipUpdate, coop_member_id: UUID, coop_id: UUID
+    coop_member_update: schemas.MembershipExtendedUpdate,
+    coop_member_id: UUID,
+    coop_id: UUID,
 ):
     async with async_session() as session:
         stmt = (
